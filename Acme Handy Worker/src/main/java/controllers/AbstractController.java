@@ -18,8 +18,16 @@ import org.springframework.web.servlet.ModelAndView;
 
 @Controller
 public class AbstractController {
+	
+	// Services 
 
-	// Panic handler ----------------------------------------------------------
+	@Autowired
+	private ConfigurationService configurationService;
+	
+	@Autowired
+	private AdministratorService administratorService;
+
+	// Panic handler 
 
 	@ExceptionHandler(Throwable.class)
 	public ModelAndView panic(final Throwable oops) {
@@ -31,6 +39,20 @@ public class AbstractController {
 		result.addObject("stackTrace", ExceptionUtils.getStackTrace(oops));
 
 		return result;
+	}
+	
+	@ModelAttribute
+	public void banner(Model model) {
+		String bannerURL;
+
+		bannerURL = configurationService.getBannerURL();
+
+
+		model.addAttribute("bannerURL",bannerURL);
+	}
+	
+	public void checkIsSpam(String s){
+		administratorService.checkIsSpam(s);
 	}
 
 }

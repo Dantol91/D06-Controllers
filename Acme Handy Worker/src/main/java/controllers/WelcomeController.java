@@ -21,28 +21,34 @@ import org.springframework.web.servlet.ModelAndView;
 @Controller
 @RequestMapping("/welcome")
 public class WelcomeController extends AbstractController {
+	
+	// Services 
 
-	// Constructors -----------------------------------------------------------
+	@Autowired
+	private ConfigurationService configurationService;
+
+	// Constructors 
 
 	public WelcomeController() {
 		super();
 	}
 
-	// Index ------------------------------------------------------------------		
+	// Index 
 
 	@RequestMapping(value = "/index")
-	public ModelAndView index(@RequestParam(required = false) final String name) {
+	public ModelAndView index(Locale locale) {
 		ModelAndView result;
-		SimpleDateFormat formatter;
-		String moment;
-
-		formatter = new SimpleDateFormat("dd/MM/yyyy HH:mm");
-		moment = formatter.format(new Date());
+		String welcomeMessage = "";
+		
+		if("es".equals(locale.getLanguage())){
+			welcomeMessage = configurationService.getConfiguration().getWelcomeMessageES();
+		}else if("en".equals(locale.getLanguage())){
+			welcomeMessage = configurationService.getConfiguration().getWelcomeMessageEN();
+		}
+		
 
 		result = new ModelAndView("welcome/index");
-		result.addObject("name", name);
-		result.addObject("moment", moment);
+		result.addObject("welcomeMessage", welcomeMessage);
 
 		return result;
-	}
 }
