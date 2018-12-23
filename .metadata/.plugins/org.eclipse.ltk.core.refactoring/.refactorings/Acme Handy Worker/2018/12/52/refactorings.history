@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">
+<refactoring comment="Rename compilation unit &apos;converters.WarrantyClassToStringConverter.java&apos; to &apos;WarrantyToStringConverter.java&apos;&#x0D;&#x0A;- Original project: &apos;Acme Handy Worker&apos;&#x0D;&#x0A;- Original element: &apos;converters.WarrantyClassToStringConverter.java&apos;&#x0D;&#x0A;- Renamed element: &apos;converters.WarrantyToStringConverter.java&apos;" description="Rename compilation unit &apos;WarrantyClassToStringConverter.java&apos;" flags="2" id="org.eclipse.jdt.ui.rename.compilationunit" input="/src\/main\/java&lt;converters{WarrantyClassToStringConverter.java" name="WarrantyToStringConverter.java" references="false" stamp="1545569456201" version="1.0"/>
+</session>

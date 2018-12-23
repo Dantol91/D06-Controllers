@@ -1,3 +1,4 @@
+
 package controllers.administrator;
 
 import javax.validation.Valid;
@@ -13,12 +14,12 @@ import services.AdministratorService;
 import domain.Administrator;
 
 @Controller
-@RequestMapping("/admin/registration")
+@RequestMapping("/administrator/registration")
 public class AdministratorRegistrationController {
 
 	// Services
 	@Autowired
-	private AdministratorService administratorService;
+	private AdministratorService	administratorService;
 
 
 	// Constructors
@@ -32,60 +33,56 @@ public class AdministratorRegistrationController {
 	@RequestMapping(value = "/registration", method = RequestMethod.GET)
 	public ModelAndView create() {
 		ModelAndView res;
-		Admin admin;
+		Administrator administrator;
 
-		admin = this.administratorService.create();
-		res = this.createEditModelAndView(admin);
+		administrator = this.administratorService.create();
+		res = this.createEditModelAndView(administrator);
 
 		return res;
 	}
 
 	// Edit
 	@RequestMapping(value = "/registration", method = RequestMethod.POST, params = "save")
-	public ModelAndView save(@Valid Admin admin, BindingResult binding) {
+	public ModelAndView save(@Valid final Administrator administrator, final BindingResult binding) {
 		ModelAndView res = null;
 
-		if (binding.hasErrors()) {
-			res = this.createEditModelAndView(admin);
-		} else {
+		if (binding.hasErrors())
+			res = this.createEditModelAndView(administrator);
+		else
 			try {
 
-				this.administratorService.save(admin);
+				this.administratorService.save(administrator);
 				res = new ModelAndView("redirect:/");
 
 			}
 
-			catch (Throwable oops) {
+			catch (final Throwable oops) {
 
 				String errorMessage = "application.commit.error";
 
-				if (oops.getMessage().contains("message.error")) {
+				if (oops.getMessage().contains("message.error"))
 					errorMessage = oops.getMessage();
-				}
 
-				res = this.createEditModelAndView(admin, errorMessage);
+				res = this.createEditModelAndView(administrator, errorMessage);
 			}
-
-		}
 		return res;
 	}
 
 	// Ancillary methods
 
-	protected ModelAndView createEditModelAndView(Admin admin) {
+	protected ModelAndView createEditModelAndView(final Administrator administrator) {
 		ModelAndView res;
 
-		res = createEditModelAndView(admin, null);
+		res = this.createEditModelAndView(administrator, null);
 
 		return res;
 	}
 
-	protected ModelAndView createEditModelAndView(Admin admin,
-			String message) {
+	protected ModelAndView createEditModelAndView(final Administrator administrator, final String message) {
 		ModelAndView res;
 
-		res = new ModelAndView("admin/registration");
-		res.addObject("admin", admin);
+		res = new ModelAndView("administrator/registration");
+		res.addObject("administrator", administrator);
 		res.addObject("message", message);
 
 		return res;
