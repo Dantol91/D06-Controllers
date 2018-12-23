@@ -5,25 +5,25 @@ import org.springframework.core.convert.converter.Converter;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import repositories.ComplaintRepository;
-import domain.Complaint;
+import repositories.SponsorRepository;
+import domain.Sponsor;
 
 @Component
 @Transactional
-public class StringToComplaintConverter implements Converter<String, Complaint>{
-	
+public class StringToSponsorConverter implements Converter<String, Sponsor> {
+
 	@Autowired
-	ComplaintRepository complaintRepository;
+	SponsorRepository sponsorRepository;
 
 
 	@Override
-	public Complaint convert(final String text) {
-		Complaint result;
+	public Sponsor convert(final String text) {
+		Sponsor result;
 		int id;
 
 		try {
 			id = Integer.valueOf(text);
-			result = this.complaintRepository.findOne(id);
+			result = this.sponsorRepository.findOne(id);
 		} catch (final Throwable oops) {
 			throw new IllegalArgumentException(oops);
 		}

@@ -12,7 +12,7 @@ import domain.Box;
 @Transactional
 public class StringToBoxConverter implements Converter<String,Box> {
 	@Autowired
-	BoxRepository	BoxRepository;
+	BoxRepository boxRepository;
 
 
 	@Override
@@ -22,7 +22,7 @@ public class StringToBoxConverter implements Converter<String,Box> {
 
 		try {
 			id = Integer.valueOf(text);
-			result = this.BoxRepository.findOne(id);
+			result = this.boxRepository.findOne(id);
 		} catch (final Throwable oops) {
 			throw new IllegalArgumentException(oops);
 		}

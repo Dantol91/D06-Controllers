@@ -13,7 +13,7 @@ import domain.EducationRecord;
 public class StringToEducationRecordConverter implements Converter<String, EducationRecord> {
 
 	@Autowired
-	EducationRecordRepository EducationRecordRepository;
+	EducationRecordRepository educationRecordRepository;
 
 
 	@Override
@@ -23,7 +23,7 @@ public class StringToEducationRecordConverter implements Converter<String, Educa
 
 		try {
 			id = Integer.valueOf(text);
-			result = this.EducationRecordRepository.findOne(id);
+			result = this.educationRecordRepository.findOne(id);
 		} catch (final Throwable oops) {
 			throw new IllegalArgumentException(oops);
 		}

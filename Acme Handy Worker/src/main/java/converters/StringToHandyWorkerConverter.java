@@ -13,7 +13,7 @@ import domain.HandyWorker;
 public class StringToHandyWorkerConverter implements Converter<String, HandyWorker> {
 
 	@Autowired
-	HandyWorkerRepository HandyWorkerRepository;
+	HandyWorkerRepository handyWorkerRepository;
 
 
 	@Override
@@ -23,7 +23,7 @@ public class StringToHandyWorkerConverter implements Converter<String, HandyWork
 
 		try {
 			id = Integer.valueOf(text);
-			result = this.HandyWorkerRepository.findOne(id);
+			result = this.handyWorkerRepository.findOne(id);
 		} catch (final Throwable oops) {
 			throw new IllegalArgumentException(oops);
 		}

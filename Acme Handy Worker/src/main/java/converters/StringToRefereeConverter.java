@@ -13,7 +13,7 @@ import domain.Referee;
 public class StringToRefereeConverter implements Converter<String, Referee>{
 	
 	@Autowired
-	RefereeRepository RefereeRepository;
+	RefereeRepository refereeRepository;
 
 
 	@Override
@@ -23,7 +23,7 @@ public class StringToRefereeConverter implements Converter<String, Referee>{
 
 		try {
 			id = Integer.valueOf(text);
-			result = this.RefereeRepository.findOne(id);
+			result = this.refereeRepository.findOne(id);
 		} catch (final Throwable oops) {
 			throw new IllegalArgumentException(oops);
 		}

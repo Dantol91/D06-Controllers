@@ -13,7 +13,7 @@ import repositories.SocialProfileRepository;
 public class StringToSocialProfileConverter implements Converter<String, SocialProfile> {
 
 	@Autowired
-	SocialProfileRepository SocialProfileRepository;
+	SocialProfileRepository socialProfileRepository;
 
 	@Override
 	public SocialProfile convert(final String text) {
@@ -22,7 +22,7 @@ public class StringToSocialProfileConverter implements Converter<String, SocialP
 
 		try {
 			id = Integer.valueOf(text);
-			result = this.SocialProfileRepository.findOne(id);
+			result = this.socialProfileRepository.findOne(id);
 		} catch (final Throwable oops) {
 			throw new IllegalArgumentException(oops);
 		}

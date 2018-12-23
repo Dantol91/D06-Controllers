@@ -13,7 +13,7 @@ import domain.Category;
 public class StringToCategoryConverter implements Converter<String, Category> {
 
 	@Autowired
-	CategoryRepository	categoryRepository;
+	CategoryRepository categoryRepository;
 
 
 	@Override

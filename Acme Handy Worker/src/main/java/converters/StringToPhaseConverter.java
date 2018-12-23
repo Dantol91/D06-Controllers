@@ -13,7 +13,7 @@ import domain.Phase;
 public class StringToPhaseConverter implements Converter<String, Phase> {
 
 	@Autowired
-	PhaseRepository	PhaseRepository;
+	PhaseRepository	phaseRepository;
 
 
 	@Override
@@ -23,7 +23,7 @@ public class StringToPhaseConverter implements Converter<String, Phase> {
 
 		try {
 			id = Integer.valueOf(text);
-			result = this.PhaseRepository.findOne(id);
+			result = this.phaseRepository.findOne(id);
 		} catch (final Throwable oops) {
 			throw new IllegalArgumentException(oops);
 		}

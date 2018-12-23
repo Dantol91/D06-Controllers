@@ -13,7 +13,7 @@ import domain.Warranty;
 public class StringToWarrantyConverter implements Converter<String, Warranty> {
 
 	@Autowired
-	WarrantyRepository	WarrantyRepository;
+	WarrantyRepository warrantyRepository;
 
 
 	@Override
@@ -23,7 +23,7 @@ public class StringToWarrantyConverter implements Converter<String, Warranty> {
 
 		try {
 			id = Integer.valueOf(text);
-			result = this.WarrantyRepository.findOne(id);
+			result = this.warrantyRepository.findOne(id);
 		} catch (final Throwable oops) {
 			throw new IllegalArgumentException(oops);
 		}

@@ -13,7 +13,7 @@ import domain.FixUpTask;
 public class StringToFixUpTaskConverter implements Converter<String, FixUpTask> {
 
 	@Autowired
-	FixUpTaskRepository	FixUpTaskRepository;
+	FixUpTaskRepository	fixUpTaskRepository;
 
 
 	@Override
@@ -23,7 +23,7 @@ public class StringToFixUpTaskConverter implements Converter<String, FixUpTask> 
 
 		try {
 			id = Integer.valueOf(text);
-			result = this.FixUpTaskRepository.findOne(id);
+			result = this.fixUpTaskRepository.findOne(id);
 		} catch (final Throwable oops) {
 			throw new IllegalArgumentException(oops);
 		}

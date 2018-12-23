@@ -13,7 +13,7 @@ import domain.Report;
 public class StringToReportConverter implements Converter<String, Report> {
 
 	@Autowired
-	ReportRepository	ReportRepository;
+	ReportRepository reportRepository;
 
 
 	@Override
@@ -23,7 +23,7 @@ public class StringToReportConverter implements Converter<String, Report> {
 
 		try {
 			id = Integer.valueOf(text);
-			result = this.ReportRepository.findOne(id);
+			result = this.reportRepository.findOne(id);
 		} catch (final Throwable oops) {
 			throw new IllegalArgumentException(oops);
 		}

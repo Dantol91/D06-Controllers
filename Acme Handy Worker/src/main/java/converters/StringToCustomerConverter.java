@@ -13,7 +13,7 @@ import domain.Customer;
 public class StringToCustomerConverter implements Converter<String, Customer> {
 
 	@Autowired
-	CustomerRepository	CustomerRepository;
+	CustomerRepository customerRepository;
 
 
 	@Override
@@ -23,7 +23,7 @@ public class StringToCustomerConverter implements Converter<String, Customer> {
 
 		try {
 			id = Integer.valueOf(text);
-			result = this.CustomerRepository.findOne(id);
+			result = this.customerRepository.findOne(id);
 		} catch (final Throwable oops) {
 			throw new IllegalArgumentException(oops);
 		}
