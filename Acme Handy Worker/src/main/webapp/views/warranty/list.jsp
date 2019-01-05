@@ -22,47 +22,38 @@
 <!-- Listing grid -->
 
 <display:table pagesize="5" class="displaytag" keepStatus="true"
-	name="notes" requestURI="${requestURI}" id="row">
+	name="warrantys" requestURI="${requestURI}" id="row">
 	
 	<!-- Action links -->
-	
-	<security:authorize access="hasRole('REFEREE')">
-	<display:column>
-		<a href="note/referee/edit.do?noteId=${row.id}"> <spring:message
-				code="note.edit" />
-		</a>
-			
-			
-		</display:column>
+
+	<security:authorize access="hasRole('HANDYWORKER')">
+		<display:column>
+			<a href="warranty/handyWorker/edit.do?warrantyId=${row.id}">
+				<spring:message	code="warranty.edit" />
+			</a>
+		</display:column>		
 	</security:authorize>
 	
-	<!-- Attributes -->
-		
-	<spring:message code="note.moment" var="momentHeader" />
-	<spring:message code="master.page.date.format" var="dateFormat" />
-	<display:column property="moment" title="${momentHeader}"
-		 format="{0,date,${dateFormat}}"/>
+	<!-- Attributos -->
 	
-	
-	<display:column property="report" titleKey="note.role"
-		sortable="true" />
+	<spring:message code="warranty.title" var="title" />
+	<display:column property="title" title="${title}" sortable="true" />
 
-	<display:column property="comments" titleKey="note.comments"
-		sortable="false" />
+	<spring:message code="warranty.terms" var="terms" />
+	<display:column property="terms" title="${terms}" sortable="false" />
 	
+	<spring:message code="warranty.laws" var="laws" />
+	<display:column property="laws" title="${laws}" sortable="false" />
 	
-<security:authorize access="hasRole('REFEREE')">
+
+</display:table>
+
+<!-- Botones  -->
+
+<security:authorize access="hasRole('HANDYWORKER')">
 	<div>
-		<a href="note/referee/create.do"> <spring:message code="note.create" />
+		<a href="warranty/handyWorker/create.do"> <spring:message
+				code="warranty.create" />
 		</a>
 	</div>
 </security:authorize>
-	
-	
-	
-</display:table>
-
-
-
-
-

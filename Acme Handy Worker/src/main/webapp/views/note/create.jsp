@@ -24,45 +24,41 @@
 <display:table pagesize="5" class="displaytag" keepStatus="true"
 	name="notes" requestURI="${requestURI}" id="row">
 	
-	<!-- Action links -->
+
+	<div>
+		<form:label path="role">
+			<spring:message code="note.role"></spring:message>
+		</form:label>
+		<form:input path="role" id="role" name="role" />
+		<form:errors cssClass="error" path="role" />
+		<br />
+	</div>
+
+		<div>
+		<form:label path="comments">
+			<spring:message code="note.comments"></spring:message>
+		</form:label>
+		<form:input path="comments" id="comments" name="comments" />
+		<form:errors cssClass="error" path="comments" />
+		<br />
+	</div>
 	
-	<security:authorize access="hasRole('REFEREE')">
-	<display:column>
-		<a href="note/referee/edit.do?noteId=${row.id}"> <spring:message
-				code="note.edit" />
-		</a>
-			
-			
-		</display:column>
-	</security:authorize>
-	
-	<!-- Attributes -->
-		
+	<div>
 	<spring:message code="note.moment" var="momentHeader" />
 	<spring:message code="master.page.date.format" var="dateFormat" />
 	<display:column property="moment" title="${momentHeader}"
 		 format="{0,date,${dateFormat}}"/>
-	
-	
-	<display:column property="report" titleKey="note.role"
-		sortable="true" />
-
-	<display:column property="comments" titleKey="note.comments"
-		sortable="false" />
-	
-	
-<security:authorize access="hasRole('REFEREE')">
-	<div>
-		<a href="note/referee/create.do"> <spring:message code="note.create" />
-		</a>
+		<br />
 	</div>
-</security:authorize>
-	
-	
-	
+
+
 </display:table>
 
+<security:authorize access="hasRole('REFEREE')">
+
+	<input type="submit" name="save" value="<spring:message code="note.save"></spring:message>" />	
+	
+	<input type="button" name="cancel" value="${cancel}" onclick="javascript:relativeRedir('note/display.do')" />	
 
 
-
-
+</security:authorize>
