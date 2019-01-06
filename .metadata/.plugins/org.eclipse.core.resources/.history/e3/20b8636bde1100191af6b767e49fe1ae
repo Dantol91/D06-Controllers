@@ -1,0 +1,199 @@
+
+package controllers;
+
+import java.util.Collection;
+
+import javax.validation.Valid;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.util.Assert;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.ModelAndView;
+
+import services.ActorService;
+import services.BoxService;
+import services.MessageService;
+import domain.Actor;
+import domain.Box;
+import domain.Message;
+
+@Controller
+@RequestMapping("/message")
+public class MessageController extends AbstractController {
+
+	// Services
+
+	@Autowired
+	private MessageService	messageService;
+
+	@Autowired
+	private ActorService	actorService;
+
+	@Autowired
+	private BoxService		boxService;
+
+
+	//Constructor
+
+	public MessageController() {
+		super();
+	}
+
+	@RequestMapping(value = "/create", method = RequestMethod.GET)
+	public ModelAndView create() {
+		ModelAndView result;
+		Message m;
+		m = this.messageService.create();
+		result = this.createEditModelAndView(m);
+		return result;
+	}
+
+	@RequestMapping(value = "/edit", method = RequestMethod.POST, params = "save")
+	public ModelAndView save(@Valid final domain.Message m, final BindingResult binding) {
+		ModelAndView result;
+		if (binding.hasErrors()) {
+			int masDeUnError = 0;
+			String errorMessage = "ms.commit.error";
+			if (m.getSubject() == null || m.getSubject() == "" || m.getBody() == null || m.getBody() == "") {
+				errorMessage = "ms.be";
+				masDeUnError++;
+			}
+			if (m.getPriority().equals("0")) {
+				errorMessage = "ms.beP";
+				masDeUnError++;
+			}
+			if (m.getRecipient() == null) {
+				errorMessage = "ms.beR";
+				masDeUnError++;
+			}
+			if (masDeUnError >= 2)
+				errorMessage = "ms.beVacio";
+
+			result = this.createEditModelAndView(m, errorMessage);
+
+		} else
+			try {
+
+				this.messageService.save(m);
+				result = new ModelAndView("redirect:/");
+
+			} catch (final Throwable oops) {
+				String errorMessage = "ms.commit.error";
+
+				if (oops.getMessage().contains("message.error"))
+					errorMessage = oops.getMessage();
+
+				result = this.createEditModelAndView(m, errorMessage);
+
+			}
+
+		return result;
+	}
+
+	@RequestMapping(value = "/saveMove", method = RequestMethod.GET)
+	public ModelAndView saveMove(@RequestParam(required = true) final int messageId, @RequestParam(required = true) final int boxId) {
+		ModelAndView result;
+		final Message m = this.messageService.findOne(messageId);
+		Assert.notNull(m);
+		final Box choosedBox = this.boxService.findOne(boxId);
+		Assert.notNull(choosedBox);
+
+		try {
+
+			//		messageService.saveToMove(m,choosedBox);
+			result = new ModelAndView("redirect:/BoxService/display.do?boxId=" + choosedBox.getId());
+
+		} catch (final Throwable oops) {
+			final Actor principal = this.actorService.findByPrincipal();
+			final Collection<Box> boxes = principal.getBoxes();
+			result = new ModelAndView("message/move");
+			result.addObject("m", m);
+			result.addObject("message", "ms.commit.error");
+			result.addObject("boxes", boxes);
+
+		}
+
+		return result;
+	}
+
+	@RequestMapping(value = "/delete", method = RequestMethod.GET)
+	public ModelAndView delete(@RequestParam final int messageId) {
+		ModelAndView result;
+		Message m;
+
+		m = this.messageService.findOne(messageId);
+		final Box box = this.boxService.getBoxFromMessageId(m.getId());
+		try {
+			this.messageService.delete(m);
+			result = new ModelAndView("redirect:/box/display.do?boxId=" + box.getId());
+		} catch (final Throwable oops) {
+			result = new ModelAndView("redirect:/message/display.do?messageId=" + m.getId());
+
+		}
+
+		return result;
+
+	}
+
+	@RequestMapping(value = "/move", method = RequestMethod.GET)
+	public ModelAndView createMove(@RequestParam final int messageId) {
+		ModelAndView result;
+		Message m;
+		Box b;
+
+		b = this.boxService.getBoxFromMessageId(messageId);
+		m = this.messageService.findOne(messageId);
+		final Actor principal = this.actorService.findByPrincipal();
+		final Collection<Box> boxes = principal.getBoxes();
+		result = new ModelAndView("message/move");
+		result.addObject("m", m);
+		//	result.addObject("box", f);
+		result.addObject("message", null);
+		result.addObject("boxes", boxes);
+
+		return result;
+
+	}
+
+	@RequestMapping(value = "/display", method = RequestMethod.GET)
+	public ModelAndView display(@RequestParam final int messageId) {
+
+		ModelAndView result;
+		Message m;
+		final Box box;
+
+		m = this.messageService.findOne(messageId);
+		//		box = boxService.geBoxFromMessageId(messageId);
+
+		result = new ModelAndView("message/display");
+		result.addObject("m", m);
+		result.addObject("box", box);
+
+		return result;
+
+	}
+
+	protected ModelAndView createEditModelAndView(final Message m) {
+		ModelAndView result;
+
+		result = this.createEditModelAndView(m, null);
+
+		return result;
+	}
+
+	protected ModelAndView createEditModelAndView(final Message m, final String messageCode) {
+		ModelAndView result;
+		final Collection<Actor> actors = this.actorService.findAll();
+		result = new ModelAndView("message/create");
+		result.addObject("m", m);
+		result.addObject("message", messageCode);
+		result.addObject("actors", actors);
+
+		return result;
+	}
+
+}

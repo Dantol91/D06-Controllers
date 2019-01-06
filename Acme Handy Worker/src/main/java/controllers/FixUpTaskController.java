@@ -1,6 +1,6 @@
+
 package controllers;
 
-import java.util.ArrayList;
 import java.util.Collection;
 
 import javax.validation.Valid;
@@ -11,40 +11,35 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
 import services.ActorService;
-import services.CategoryService;
-import services.FinderService;
-import services.CustomerService;
 import services.FixUpTaskService;
-import domain.Category;
-import domain.Finder;
 import domain.Customer;
 import domain.FixUpTask;
 
 @Controller
 @RequestMapping("/fixUpTask")
-public class TripController extends AbstractController {
+public class FixUpTaskController extends AbstractController {
 
 	// Services 
 
 	@Autowired
-	private FixUpTaskService fixUpTaskService;
-	
+	private FixUpTaskService	fixUpTaskService;
+
+	//	@Autowired
+	//	private CategoryService		categoryService;
+
+	//	@Autowired
+	//	private CustomerService		customerService;
+
 	@Autowired
-	private CategoryService categoryService;
-	
-	@Autowired
-	private CustomerService customerService;
-	
-	@Autowired
-	private ActorService actorService;
-	
-	@Autowired
-	private FinderService finderService;
-	
+	private ActorService		actorService;
+
+
+	//	@Autowired
+	//	private FinderService		finderService;
+
 	// Constructors 
 
 	public FixUpTaskController() {
@@ -53,7 +48,6 @@ public class TripController extends AbstractController {
 
 	// Listing 
 
-
 	// Creation 
 
 	@RequestMapping(value = "/customer/create", method = RequestMethod.GET)
@@ -61,14 +55,14 @@ public class TripController extends AbstractController {
 		ModelAndView result;
 		FixUpTask fixUpTask;
 
-		fixUpTask = this.tripService.create();
-		result = this.createEditModelAndView(fixUpTask);
+		fixUpTask = this.fixUpTaskService.create();
+		result = this.createEditModelAndView(fixUpTask, null);
 
 		return result;
 	}
 
 	// Edition
-	
+
 	@RequestMapping(value = "/customer/edit", method = RequestMethod.GET)
 	public ModelAndView edit(@RequestParam final int fixUpTaskId) {
 		ModelAndView result;
@@ -76,7 +70,7 @@ public class TripController extends AbstractController {
 
 		fixUpTask = this.fixUpTaskService.findOneToEdit(fixUpTaskId);
 
-		result = this.createEditModelAndView(fixUpTask);
+		result = this.createEditModelAndView(fixUpTask, null);
 
 		return result;
 	}
@@ -86,20 +80,19 @@ public class TripController extends AbstractController {
 		ModelAndView result;
 
 		if (binding.hasErrors())
-			result = this.createEditModelAndView(fixUpTask);
+			result = this.createEditModelAndView(fixUpTask, null);
 		else
 			try {
 				if (fixUpTask.getId() != 0)
 					this.fixUpTaskService.save(fixUpTask);
 				else
-					this.tripService.saveFromCreate(fixUpTask);
+					this.fixUpTaskService.saveFromCreate(fixUpTask);
 				result = new ModelAndView("redirect:/fixUpTask/customer/list.do");
 			} catch (final Throwable oops) {
 				String errorMessage = "application.commit.error";
-				
-				if(oops.getMessage().contains("message.error")){
+
+				if (oops.getMessage().contains("message.error"))
 					errorMessage = oops.getMessage();
-				}
 				result = this.createEditModelAndView(fixUpTask, errorMessage);
 			}
 
@@ -111,35 +104,30 @@ public class TripController extends AbstractController {
 		ModelAndView result;
 
 		try {
-			this.tripService.delete(fixUpTask);
+			this.fixUpTaskService.delete(fixUpTask);
 			result = new ModelAndView("redirect:list.do");
 		} catch (final Throwable oops) {
-			result = this.createEditModelAndView(fixUpTask,
-					"application.commit.error");
+			result = this.createEditModelAndView(fixUpTask, "application.commit.error");
 		}
 
 		return result;
 	}
 
 	// Display
-	
+
 	@RequestMapping(value = "/customer/display", method = RequestMethod.GET)
 	public ModelAndView display(@RequestParam final int fixUpTaskId) {
 		ModelAndView result;
 		FixUpTask fixUpTask;
 		Customer c;
 		Collection<FixUpTask> customerFixUpTasks;
-		
 
 		c = (Customer) this.actorService.findByPrincipal();
-		customerFixUpTasks = this.fixUpTaskService.getTripsByCustomerId(m.getId());
+		customerFixUpTasks = this.fixUpTaskService.getFixUpTasksByCustomerId(c.getId());
 		fixUpTask = this.fixUpTaskService.findOne(fixUpTaskId);
-	
 
 		result = new ModelAndView("fixUpTask/display");
 		result.addObject("fixUpTask", fixUpTask);
-
-		}
 
 		return result;
 	}
@@ -154,7 +142,6 @@ public class TripController extends AbstractController {
 		result = new ModelAndView("fixUpTask/display");
 		result.addObject("fixUpTask", fixUpTask);
 
-	
 		return result;
 	}
 
@@ -170,11 +157,10 @@ public class TripController extends AbstractController {
 	}
 
 	@RequestMapping(value = "/searchByKeyword", method = RequestMethod.GET)
-	public ModelAndView searchByKeyword(
-		@RequestParam(value = "keyword", required = true) final String keyword) {
+	public ModelAndView searchByKeyword(@RequestParam(value = "keyword", required = true) final String keyword) {
 		ModelAndView result;
 
-		visibleTrips = this.tripService.tripsByKeyWord(keyword);
+		final Collection<FixUpTask> visibleFixUpTasks = this.fixUpTaskService.getFixUpTasksByKeyWord(keyword);
 
 		result = new ModelAndView("fixUpTask/list");
 		result.addObject("requestURI", "fixUpTask/list.do");
@@ -182,10 +168,9 @@ public class TripController extends AbstractController {
 		return result;
 	}
 
-
 	// Ancillary methods 
-	
-	protected ModelAndView createEditModelAndView(final FixUpTask fixUpTask) {
+
+	protected ModelAndView createEditModelAndView(final FixUpTask fixUpTask, final String messageCode) {
 		ModelAndView result;
 
 		result = this.createEditModelAndView(fixUpTask, null);

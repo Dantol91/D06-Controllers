@@ -54,7 +54,7 @@ public class LoginController extends AbstractController {
 		return result;
 	}
 
-	// LoginFailure -----------------------------------------------------------
+	// LoginFailure 
 
 	@RequestMapping("/loginFailure")
 	public ModelAndView failure() {

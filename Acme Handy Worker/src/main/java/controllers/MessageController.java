@@ -1,3 +1,4 @@
+
 package controllers;
 
 import java.util.Collection;
@@ -23,18 +24,19 @@ import domain.Message;
 @Controller
 @RequestMapping("/message")
 public class MessageController extends AbstractController {
-	
+
 	// Services
 
 	@Autowired
-	private MessageService messageService;
+	private MessageService	messageService;
 
 	@Autowired
-	private ActorService actorService;
+	private ActorService	actorService;
 
 	@Autowired
-	private BoxService boxService;
-	
+	private BoxService		boxService;
+
+
 	//Constructor
 
 	public MessageController() {
@@ -45,141 +47,131 @@ public class MessageController extends AbstractController {
 	public ModelAndView create() {
 		ModelAndView result;
 		Message m;
-		m = messageService.create();
+		m = this.messageService.create();
 		result = this.createEditModelAndView(m);
 		return result;
 	}
 
 	@RequestMapping(value = "/edit", method = RequestMethod.POST, params = "save")
-	public ModelAndView save(@Valid domain.Message m, BindingResult binding) {
+	public ModelAndView save(@Valid final domain.Message m, final BindingResult binding) {
 		ModelAndView result;
 		if (binding.hasErrors()) {
-			int masDeUnError =0;
+			int masDeUnError = 0;
 			String errorMessage = "ms.commit.error";
-			if(m.getSubject()==null || m.getSubject()=="" || m.getBody()==null || m.getBody()==""){
+			if (m.getSubject() == null || m.getSubject() == "" || m.getBody() == null || m.getBody() == "") {
 				errorMessage = "ms.be";
-			masDeUnError++;
+				masDeUnError++;
 			}
-			if(m.getPriority().equals("0")){
-				 errorMessage = "ms.beP";
-			masDeUnError++;
+			if (m.getPriority().equals("0")) {
+				errorMessage = "ms.beP";
+				masDeUnError++;
 			}
-			if(m.getRecipient()==null){
-				 errorMessage = "ms.beR";
-				 masDeUnError++;
+			if (m.getRecipient() == null) {
+				errorMessage = "ms.beR";
+				masDeUnError++;
 			}
-			if(masDeUnError >=2){
+			if (masDeUnError >= 2)
 				errorMessage = "ms.beVacio";
-			}
-			
-			result = createEditModelAndView(m,errorMessage);
 
-		} else {
+			result = this.createEditModelAndView(m, errorMessage);
+
+		} else
 			try {
 
-				messageService.save(m);
+				this.messageService.save(m);
 				result = new ModelAndView("redirect:/");
 
-			} catch (Throwable oops) {
+			} catch (final Throwable oops) {
 				String errorMessage = "ms.commit.error";
 
-				if (oops.getMessage().contains("message.error")) {
+				if (oops.getMessage().contains("message.error"))
 					errorMessage = oops.getMessage();
-				}
-				
-				result = createEditModelAndView(m, errorMessage);
-			
+
+				result = this.createEditModelAndView(m, errorMessage);
+
 			}
-		}
 
 		return result;
 	}
-	
 
 	@RequestMapping(value = "/saveMove", method = RequestMethod.GET)
-	public ModelAndView saveMove(@RequestParam(required=true) int messageId,
-			@RequestParam(required=true) int boxId){
+	public ModelAndView saveMove(@RequestParam(required = true) final int messageId, @RequestParam(required = true) final int boxId) {
 		ModelAndView result;
-		Message m = messageService.findOne(messageId);
+		final Message m = this.messageService.findOne(messageId);
 		Assert.notNull(m);
-		Box choosedBox = boxService.findOne(boxId);
+		final Box choosedBox = this.boxService.findOne(boxId);
 		Assert.notNull(choosedBox);
-		
-		try {
-			
-			messageService.saveToMove(m,choosedBox);
-			result = new ModelAndView("redirect:/BoxService/display.do?boxId="+choosedBox.getId());
 
-		} catch (Throwable oops) {
-			Actor principal = actorService.findByPrincipal();
-			Collection<Box> boxes = principal.getBoxes();
+		try {
+
+			//		messageService.saveToMove(m,choosedBox);
+			result = new ModelAndView("redirect:/BoxService/display.do?boxId=" + choosedBox.getId());
+
+		} catch (final Throwable oops) {
+			final Actor principal = this.actorService.findByPrincipal();
+			final Collection<Box> boxes = principal.getBoxes();
 			result = new ModelAndView("message/move");
 			result.addObject("m", m);
 			result.addObject("message", "ms.commit.error");
 			result.addObject("boxes", boxes);
 
-			
-
 		}
-		
+
 		return result;
 	}
-	
 
 	@RequestMapping(value = "/delete", method = RequestMethod.GET)
-	public ModelAndView delete(@RequestParam int messageId) {
+	public ModelAndView delete(@RequestParam final int messageId) {
 		ModelAndView result;
 		Message m;
-		
-		m = messageService.findOne(messageId);
-		Box box = boxService.getBoxFromMessageId(m.getId());
+
+		m = this.messageService.findOne(messageId);
+		final Box box = this.boxService.getBoxFromMessageId(m.getId());
 		try {
 			this.messageService.delete(m);
-			result = new ModelAndView("redirect:/box/display.do?boxId="
-					+ box.getId());
+			result = new ModelAndView("redirect:/box/display.do?boxId=" + box.getId());
 		} catch (final Throwable oops) {
-			result = new ModelAndView("redirect:/message/display.do?messageId="
-					+ m.getId());
+			result = new ModelAndView("redirect:/message/display.do?messageId=" + m.getId());
 
 		}
 
 		return result;
 
 	}
-	
+
 	@RequestMapping(value = "/move", method = RequestMethod.GET)
-	public ModelAndView createMove(@RequestParam int messageId) {
+	public ModelAndView createMove(@RequestParam final int messageId) {
 		ModelAndView result;
 		Message m;
 		Box b;
-		
-		b = boxService.getBoxFromMessageId(messageId);
-		m = messageService.findOne(messageId);
-		Actor principal = actorService.findByPrincipal();
-		Collection<Box> boxes = principal.getBoxes();
+
+		b = this.boxService.getBoxFromMessageId(messageId);
+		m = this.messageService.findOne(messageId);
+		final Actor principal = this.actorService.findByPrincipal();
+		final Collection<Box> boxes = principal.getBoxes();
 		result = new ModelAndView("message/move");
 		result.addObject("m", m);
-		result.addObject("box", f);
+		//	result.addObject("box", f);
 		result.addObject("message", null);
 		result.addObject("boxes", boxes);
-		
+
 		return result;
 
 	}
 
 	@RequestMapping(value = "/display", method = RequestMethod.GET)
-	public ModelAndView display(@RequestParam int messageId) {
+	public ModelAndView display(@RequestParam final int messageId) {
 
 		ModelAndView result;
 		Message m;
-		Box box;
+		final Box box;
 
-		m = messageService.findOne(messageId);
-		box = boxService.geBoxFromMessageId(messageId);
+		m = this.messageService.findOne(messageId);
+		//		box = boxService.geBoxFromMessageId(messageId);
 
 		result = new ModelAndView("message/display");
 		result.addObject("m", m);
-		result.addObject("box", box);
+		//		result.addObject("box", box);
 
 		return result;
 
@@ -193,10 +185,9 @@ public class MessageController extends AbstractController {
 		return result;
 	}
 
-	protected ModelAndView createEditModelAndView(final Message m,
-			final String messageCode) {
+	protected ModelAndView createEditModelAndView(final Message m, final String messageCode) {
 		ModelAndView result;
-		Collection<Actor> actors = actorService.findAll();
+		final Collection<Actor> actors = this.actorService.findAll();
 		result = new ModelAndView("message/create");
 		result.addObject("m", m);
 		result.addObject("message", messageCode);

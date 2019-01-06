@@ -1,8 +1,6 @@
 
 package controllers;
 
-import java.util.ArrayList;
-
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,14 +12,10 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
-import services.ActorService;
 import services.ComplaintService;
 import services.ReportService;
-import domain.Actor;
 import domain.Complaint;
-import domain.Referee;
 import domain.Report;
-
 
 @Controller
 @RequestMapping("report")
@@ -31,11 +25,13 @@ public class ReportController extends AbstractController {
 
 	@Autowired
 	private ReportService		reportService;
+
 	@Autowired
 	private ComplaintService	complaintService;
-	@Autowired
-	private ActorService		actorService;
 
+
+	//	@Autowired
+	//	private ActorService		actorService;
 
 	// List
 
@@ -45,7 +41,6 @@ public class ReportController extends AbstractController {
 		final Report report = this.reportService.findOne(reportId);
 		res.addObject("report", report);
 		res.addObject("requestURI", "report/profile.do");
-		this.isPrincipalAuthorizedEdit(res, report);
 		return res;
 	}
 
@@ -55,7 +50,7 @@ public class ReportController extends AbstractController {
 	@RequestMapping("referee/create")
 	private ModelAndView create(@RequestParam(required = true) final Integer complaintId) {
 		final Complaint complaint = this.complaintService.findOne(complaintId);
-		final Report report = this.reportService.create(complaint);
+		final Report report = this.reportService.create();
 		final ModelAndView res = this.createEditModelAndView(report);
 		return res;
 	}
@@ -104,13 +99,12 @@ public class ReportController extends AbstractController {
 
 	// Others
 
-
 	@SuppressWarnings("unused")
 	@RequestMapping(value = "referee/edit", method = RequestMethod.POST, params = "removeAttachment")
 	private ModelAndView removeAttachment(final Report report, final BindingResult binding) {
 		ModelAndView res = null;
 		try {
-			report.getAttachmentLink().remove(report.getAttachmentLink().size() - 1);
+			report.getAttachmentLink();
 			res = this.createEditModelAndView(report);
 		} catch (final Throwable t) {
 			res = this.createEditModelAndView(report, "cannot.commit.error");
@@ -128,16 +122,7 @@ public class ReportController extends AbstractController {
 		final ModelAndView res = new ModelAndView("report/edit");
 		res.addObject("report", report);
 		res.addObject("message", message);
-		this.isPrincipalAuthorizedEdit(res, report);
 		return res;
-	}
-
-	private void isPrincipalAuthorizedEdit(final ModelAndView modelAndView, final Report report) {
-		Boolean res = false;
-		final Actor principal = this.actorService.findPrincipal();
-		if (report.getDraft() && principal instanceof Referee)
-			res = true;
-		modelAndView.addObject("isPrincipalAuthorizedEdit", res);
 	}
 
 }

@@ -1,3 +1,4 @@
+
 package controllers;
 
 import java.util.Collection;
@@ -23,15 +24,15 @@ import domain.Message;
 @RequestMapping("/box")
 public class BoxController extends AbstractController {
 
-	
 	// Services
-	
+
 	@Autowired
-	private BoxService boxService;
-	
+	private BoxService		boxService;
+
 	@Autowired
-	private ActorService actorService;
-	
+	private ActorService	actorService;
+
+
 	// Constructor
 
 	public BoxController() {
@@ -39,30 +40,30 @@ public class BoxController extends AbstractController {
 	}
 
 	@RequestMapping(value = "/create", method = RequestMethod.GET)
-	public ModelAndView create(@RequestParam int boxId) {
+	public ModelAndView create(@RequestParam final int boxId) {
 		ModelAndView result;
-		Box parentBox = boxService.findOne(boxId);
+		final Box parentBox = this.boxService.findOne(boxId);
 		Box box;
-		box = boxrService.create();
+		box = this.boxService.create();
 		box.setParentBox(parentBox);
 		result = this.createEditModelAndView(box, false);
 		return result;
 	}
-	
+
 	@RequestMapping(value = "/move", method = RequestMethod.GET)
-	public ModelAndView createMove(@RequestParam int boxId) {
+	public ModelAndView createMove(@RequestParam final int boxId) {
 		ModelAndView result;
 		Box box;
-		
-		box = boxService.findOne(boxId);
-		
-		Actor principal = actorService.findByPrincipal();
-		Collection<Box> boxes = principal.getBoxes();
+
+		box = this.boxService.findOne(boxId);
+
+		final Actor principal = this.actorService.findByPrincipal();
+		final Collection<Box> boxes = principal.getBoxes();
 		result = new ModelAndView("box/move");
 		result.addObject("box", box);
 		result.addObject("message", null);
 		result.addObject("boxes", boxes);
-		
+
 		return result;
 
 	}
@@ -71,148 +72,122 @@ public class BoxController extends AbstractController {
 	public ModelAndView create() {
 		ModelAndView result;
 		Box box;
-		box = boxService.create();
+		box = this.boxService.create();
 		result = this.createEditModelAndView(box, true);
 		return result;
 	}
 
 	@RequestMapping(value = "/edit", method = RequestMethod.POST, params = "save")
-	public ModelAndView save(@Valid Box box, BindingResult binding) {
+	public ModelAndView save(@Valid final Box box, final BindingResult binding) {
 
 		ModelAndView result;
-		if (binding.hasErrors()) {
+		if (binding.hasErrors())
 			result = this.createEditModelAndView(box, false);
-
-		} else {
-
+		else
 			try {
 
-				boxService.save(box);
+				this.boxService.save(box);
 
-				result = new ModelAndView("redirect:display.do?boxIdId="
-						+ box.getParentBox().getId());
+				result = new ModelAndView("redirect:display.do?boxIdId=" + box.getParentBox().getId());
 
-			} catch (Throwable oops) {
+			} catch (final Throwable oops) {
 
-				result = createEditModelAndView(box, "ms.commit.error",
-						false);
+				result = this.createEditModelAndView(box, "ms.commit.error", false);
 
 			}
-
-		}
 		return result;
 
 	}
-	
-	@RequestMapping(value = "/saveMove", method = RequestMethod.GET)
-	public ModelAndView saveMove(@RequestParam(required=true) int targetboxId,
-		@RequestParam(required=true) int boxId){
-		ModelAndView result;
-		Box box = boxService.findOne(boxId);
-		Assert.notNull(box);
-		Box targetBox = boxService.findOne(targetboxId);
-		Assert.notNull(targetBox);
-		
-		try {
-			
-			boxService.saveToMove(box,targetBox);
-			result = new ModelAndView("redirect:/box/display.do?boxId="+targetBox.getId());
 
-		} catch (Throwable oops) {
-			Actor principal = actorService.findByPrincipal();
-			Collection<Box> boxes = principal.getBoxes();
+	@RequestMapping(value = "/saveMove", method = RequestMethod.GET)
+	public ModelAndView saveMove(@RequestParam(required = true) final int targetboxId, @RequestParam(required = true) final int boxId) {
+		ModelAndView result;
+		final Box box = this.boxService.findOne(boxId);
+		Assert.notNull(box);
+		final Box targetBox = this.boxService.findOne(targetboxId);
+		Assert.notNull(targetBox);
+
+		try {
+
+			//		boxService.saveToMove(box,targetBox);
+			result = new ModelAndView("redirect:/box/display.do?boxId=" + targetBox.getId());
+
+		} catch (final Throwable oops) {
+			final Actor principal = this.actorService.findByPrincipal();
+			final Collection<Box> boxes = principal.getBoxes();
 			result = new ModelAndView("message/move");
 			result.addObject("box", box);
 			result.addObject("message", "ms.commit.error");
 			result.addObject("boxes", boxes);
 
-			
-
 		}
-		
+
 		return result;
 	}
-	
-	
 
 	@RequestMapping(value = "/editFirst", method = RequestMethod.POST, params = "saveFirst")
-	public ModelAndView saveFirst(@Valid Box box, BindingResult binding) {
+	public ModelAndView saveFirst(@Valid final Box box, final BindingResult binding) {
 
 		ModelAndView result;
-		if (binding.hasErrors()) {
+		if (binding.hasErrors())
 			result = this.createEditModelAndView(box, true);
-
-		} else {
+		else
 			try {
 
-				boxService.save(box);
+				this.boxService.save(box);
 
 				result = new ModelAndView("redirect:list.do");
 
-			} catch (Throwable oops) {
+			} catch (final Throwable oops) {
 
-				result = createEditModelAndView(box, "ms.commit.error", true);
+				result = this.createEditModelAndView(box, "ms.commit.error", true);
 
 			}
-
-		}
 		return result;
 
 	}
 
 	@RequestMapping(value = "/delete", method = RequestMethod.GET)
-	public ModelAndView delete(@RequestParam int boxId) {
+	public ModelAndView delete(@RequestParam final int boxId) {
 		ModelAndView result;
 		Box box;
-		box = boxService.findOne(boxId);
-		Box parentBox = box.getParentBox();
+		box = this.boxService.findOne(boxId);
+		final Box parentBox = box.getParentBox();
 
-		if (box.getParentBox()==null) {
-			
+		if (box.getParentBox() == null)
 			try {
 				this.boxService.delete(box);
 				result = new ModelAndView("redirect:list.do");
-//				result = new ModelAndView(
-//						"redirect:/box/display.do?boxId="
-//								+ parentBox.getId());
+				//				result = new ModelAndView(
+				//						"redirect:/box/display.do?boxId="
+				//								+ parentBox.getId());
 			} catch (final Throwable oops) {
-				result = new ModelAndView(
-						"redirect:/box/display.do?boxId="
-								+ box.getId());
+				result = new ModelAndView("redirect:/box/display.do?boxId=" + box.getId());
 
 			}
-			
-		} else {
-
+		else
 			try {
 				this.boxService.delete(box);
 
-				result = new ModelAndView(
-						"redirect:/box/display.do?boxId="
-								+ parentBox.getId());
+				result = new ModelAndView("redirect:/box/display.do?boxId=" + parentBox.getId());
 			} catch (final Throwable oops) {
-				result = new ModelAndView(
-						"redirect:/box/display.do?boxId="
-								+ box.getId());
+				result = new ModelAndView("redirect:/box/display.do?boxId=" + box.getId());
 
 			}
-		}
 
 		return result;
 
 	}
 
-
 	@RequestMapping(value = "/editFirst", method = RequestMethod.POST, params = "delete")
-	public ModelAndView deleteFirst(Box box, BindingResult binding) {
+	public ModelAndView deleteFirst(final Box box, final BindingResult binding) {
 		ModelAndView result;
 
 		try {
 			this.boxService.delete(box);
 			result = new ModelAndView("redirect:list.do");
 		} catch (final Throwable oops) {
-			result = this.createEditModelAndView(box,
-					"application.commit.error", true);
+			result = this.createEditModelAndView(box, "application.commit.error", true);
 		}
 
 		return result;
@@ -225,8 +200,8 @@ public class BoxController extends AbstractController {
 		ModelAndView result;
 		Collection<Box> boxes;
 
-		Actor actor = actorService.findByPrincipal();
-		boxes = boxService.getFirstLevelBoxesFromActorId(actor.getId());
+		final Actor actor = this.actorService.findByPrincipal();
+		boxes = this.boxService.getFirstLevelBoxFromActorId(actor.getId());
 
 		result = new ModelAndView("box/list");
 		result.addObject("boxes", boxes);
@@ -236,15 +211,15 @@ public class BoxController extends AbstractController {
 	}
 
 	@RequestMapping(value = "/display", method = RequestMethod.GET)
-	public ModelAndView display(@RequestParam int boxId) {
+	public ModelAndView display(@RequestParam final int boxId) {
 
 		ModelAndView result;
 		Box box;
 		Collection<Message> messages;
 		Collection<Box> boxes;
-		box = boxService.findOne(boxId);
+		box = this.boxService.findOne(boxId);
 		messages = box.getMessages();
-		boxes =boxrService.getChildBoxes(boxId);
+		boxes = this.boxService.getChildBoxes(boxId);
 		result = new ModelAndView("box/display");
 		result.addObject("boxes", boxes);
 		result.addObject("messages", messages);
@@ -254,8 +229,7 @@ public class BoxController extends AbstractController {
 
 	}
 
-	protected ModelAndView createEditModelAndView(final Box box,
-			boolean isFirst) {
+	protected ModelAndView createEditModelAndView(final Box box, final boolean isFirst) {
 		ModelAndView result;
 
 		result = this.createEditModelAndView(box, null, isFirst);
@@ -263,8 +237,7 @@ public class BoxController extends AbstractController {
 		return result;
 	}
 
-	protected ModelAndView createEditModelAndView(final Box box,
-			final String messageCode, boolean isFirst) {
+	protected ModelAndView createEditModelAndView(final Box box, final String messageCode, final boolean isFirst) {
 
 		ModelAndView result;
 		if (isFirst) {
@@ -273,7 +246,7 @@ public class BoxController extends AbstractController {
 			result.addObject("message", messageCode);
 		} else {
 			result = new ModelAndView("box/create");
-			Box parentBox = box.getParentBox();
+			final Box parentBox = box.getParentBox();
 			result.addObject("box", box);
 			result.addObject("message", messageCode);
 			result.addObject("parentBox", parentBox);

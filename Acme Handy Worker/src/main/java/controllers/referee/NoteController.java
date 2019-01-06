@@ -1,5 +1,5 @@
 
-package controllers;
+package controllers.referee;
 
 import java.util.Collection;
 
@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
+import controllers.AbstractController;
+
 import services.NoteService;
 import services.ReportService;
 import domain.Note;
@@ -26,8 +28,8 @@ public class NoteController extends AbstractController {
 	@Autowired
 	NoteService		noteService;
 
-	// @Autowired
-	// ReportService	reportService;
+	@Autowired
+	ReportService	reportService;
 
 
 	@RequestMapping(value = "/list", method = RequestMethod.GET)
@@ -86,7 +88,6 @@ public class NoteController extends AbstractController {
 		return result;
 	}
 
-
 	protected ModelAndView createEditModelAndView(final Note note) {
 		ModelAndView result;
 
@@ -99,7 +100,7 @@ public class NoteController extends AbstractController {
 		final ModelAndView result;
 		Collection<Report> reports;
 
-	//	reports = this.reportService.findAll();
+		reports = this.reportService.findAll();
 
 		result = new ModelAndView("note/edit");
 		result.addObject("note", note);

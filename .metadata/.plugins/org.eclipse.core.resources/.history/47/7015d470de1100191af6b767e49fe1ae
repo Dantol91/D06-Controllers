@@ -1,0 +1,129 @@
+
+package controllers;
+
+import java.util.ArrayList;
+import java.util.Collection;
+
+import javax.validation.Valid;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.util.Assert;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.ModelAndView;
+
+import services.HandyWorkerService;
+import services.WarrantyService;
+import domain.HandyWorker;
+import domain.Warranty;
+
+@Controller
+@RequestMapping("warranty")
+public class WarrantyController extends AbstractController {
+
+	//Services
+
+	@Autowired
+	HandyWorkerService	handyWorkerService;
+
+	@Autowired
+	WarrantyService		warrantyService;
+
+
+	//Creation
+
+	@RequestMapping(value = "/create", method = RequestMethod.GET)
+	public ModelAndView create(@RequestParam final int handyWorkerId) {
+		ModelAndView res;
+		Warranty profRec;
+		profRec = this.warrantyService.create();
+
+		res = this.createEditModelAndView(profRec);
+
+		return res;
+	}
+
+	//Edition
+
+	@RequestMapping(value = "/edit", method = RequestMethod.GET)
+	public ModelAndView edit(@RequestParam final int sponsorId) {
+		ModelAndView res;
+		Warranty sponsor;
+
+		sponsor = this.warrantyService.findOne(sponsorId);
+		Assert.notNull(sponsor);
+		res = this.createEditModelAndView(sponsor);
+
+		return res;
+
+	}
+
+	@RequestMapping(value = "/edit", method = RequestMethod.POST, params = "save")
+	public ModelAndView save(@Valid final Warranty sponsor, final BindingResult binding) {
+		ModelAndView result;
+
+		if (binding.hasErrors())
+			result = this.createEditModelAndView(sponsor);
+		else
+			try {
+				final Warranty aud = this.warrantyService.save(sponsor);
+				result = new ModelAndView("redirect:display.do?sponsorId=" + aud.getId());
+			} catch (final Throwable oops) {
+				result = this.createEditModelAndView(sponsor, "sponsor.commit.error");
+			}
+
+		return result;
+	}
+
+	@RequestMapping(value = "/display", method = RequestMethod.GET)
+	public ModelAndView display(@RequestParam final int sponsorId) {
+		final ModelAndView result;
+		Warranty sponsor;
+
+		sponsor = this.warrantyService.findOne(sponsorId);
+		result = new ModelAndView("sponsor/display");
+		result.addObject("sponsor", sponsor);
+
+		return result;
+	}
+
+	//Listing
+
+	@RequestMapping(value = "/list", method = RequestMethod.GET)
+	public ModelAndView list() {
+		ModelAndView res;
+		Collection<HandyWorker> profRecs = new ArrayList<>();
+
+		res = new ModelAndView("sponsor/list");
+		profRecs = this.handyWorkerService.findAll(); 
+
+		res.addObject("sponsors", profRecs);
+		res.addObject("requestURI", "sponsor/warranty/list.do");
+
+		return res;
+	}
+
+	//Ancillary methods
+
+	private ModelAndView createEditModelAndView(final Warranty sponsor) {
+		final ModelAndView res;
+
+		res = this.createEditModelAndView(sponsor, null);
+
+		return res;
+
+	}
+
+	protected ModelAndView createEditModelAndView(final Warranty sponsor, final String message) {
+		ModelAndView result;
+
+		result = new ModelAndView("sponsor/edit");
+		result.addObject("sponsor", sponsor);
+
+		return result;
+	}
+
+}

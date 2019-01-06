@@ -11,21 +11,28 @@
 package controllers;
 
 import org.apache.commons.lang.exception.ExceptionUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.util.ClassUtils;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.servlet.ModelAndView;
+
+import services.AdministratorService;
+import services.ConfigurationService;
 
 @Controller
 public class AbstractController {
-	
+
 	// Services 
 
 	@Autowired
-	private ConfigurationService configurationService;
-	
+	private ConfigurationService	configurationService;
+
 	@Autowired
-	private AdministratorService administratorService;
+	private AdministratorService	administratorService;
+
 
 	// Panic handler 
 
@@ -40,19 +47,18 @@ public class AbstractController {
 
 		return result;
 	}
-	
+
 	@ModelAttribute
-	public void banner(Model model) {
+	public void banner(final Model model) {
 		String bannerURL;
 
-		bannerURL = configurationService.getBannerURL();
+		bannerURL = this.configurationService.getBannerURL();
 
-
-		model.addAttribute("bannerURL",bannerURL);
+		model.addAttribute("bannerURL", bannerURL);
 	}
-	
-	public void checkIsSpam(String s){
-		administratorService.checkIsSpam(s);
+
+	public void checkIsSpam(final String s) {
+		this.administratorService.checkIsSpam(s);
 	}
 
 }

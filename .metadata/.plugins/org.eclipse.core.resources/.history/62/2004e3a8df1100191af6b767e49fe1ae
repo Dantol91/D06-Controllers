@@ -1,0 +1,184 @@
+
+package controllers;
+
+import java.util.Collection;
+
+import javax.validation.Valid;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.ModelAndView;
+
+import services.ActorService;
+import services.CategoryService;
+import services.CustomerService;
+import services.FinderService;
+import services.FixUpTaskService;
+import domain.Customer;
+import domain.FixUpTask;
+
+@Controller
+@RequestMapping("/fixUpTask")
+public class FixUpTaskController extends AbstractController {
+
+	// Services 
+
+	@Autowired
+	private FixUpTaskService	fixUpTaskService;
+
+	@Autowired
+	private CategoryService		categoryService;
+
+	@Autowired
+	private CustomerService		customerService;
+
+	@Autowired
+	private ActorService		actorService;
+
+	@Autowired
+	private FinderService		finderService;
+
+
+	// Constructors 
+
+	public FixUpTaskController() {
+		super();
+	}
+
+	// Listing 
+
+	// Creation 
+
+	@RequestMapping(value = "/customer/create", method = RequestMethod.GET)
+	public ModelAndView create() {
+		ModelAndView result;
+		FixUpTask fixUpTask;
+
+		fixUpTask = this.fixUpTaskService.create();
+		result = this.createEditModelAndView(fixUpTask);
+
+		return result;
+	}
+
+	// Edition
+
+	@RequestMapping(value = "/customer/edit", method = RequestMethod.GET)
+	public ModelAndView edit(@RequestParam final int fixUpTaskId) {
+		ModelAndView result;
+		FixUpTask fixUpTask;
+
+		fixUpTask = this.fixUpTaskService.findOneToEdit(fixUpTaskId);
+
+		result = this.createEditModelAndView(fixUpTask);
+
+		return result;
+	}
+
+	@RequestMapping(value = "/customer/edit", method = RequestMethod.POST, params = "save")
+	public ModelAndView save(@Valid final FixUpTask fixUpTask, final BindingResult binding) {
+		ModelAndView result;
+
+		if (binding.hasErrors())
+			result = this.createEditModelAndView(fixUpTask);
+		else
+			try {
+				if (fixUpTask.getId() != 0)
+					this.fixUpTaskService.save(fixUpTask);
+				else
+					this.fixUpTaskService.saveFromCreate(fixUpTask);
+				result = new ModelAndView("redirect:/fixUpTask/customer/list.do");
+			} catch (final Throwable oops) {
+				String errorMessage = "application.commit.error";
+
+				if (oops.getMessage().contains("message.error"))
+					errorMessage = oops.getMessage();
+				result = this.createEditModelAndView(fixUpTask, errorMessage);
+			}
+
+		return result;
+	}
+
+	@RequestMapping(value = "/customer/edit", method = RequestMethod.POST, params = "delete")
+	public ModelAndView delete(final FixUpTask fixUpTask, final BindingResult binding) {
+		ModelAndView result;
+
+		try {
+			this.fixUpTaskService.delete(fixUpTask);
+			result = new ModelAndView("redirect:list.do");
+		} catch (final Throwable oops) {
+			result = this.createEditModelAndView(fixUpTask, "application.commit.error");
+		}
+
+		return result;
+	}
+
+	// Display
+
+	@RequestMapping(value = "/customer/display", method = RequestMethod.GET)
+	public ModelAndView display(@RequestParam final int fixUpTaskId) {
+		ModelAndView result;
+		FixUpTask fixUpTask;
+		Customer c;
+		Collection<FixUpTask> customerFixUpTasks;
+
+		c = (Customer) this.actorService.findByPrincipal();
+		customerFixUpTasks = this.fixUpTaskService.getFixUpTasksByCustomerId(c.getId());
+		fixUpTask = this.fixUpTaskService.findOne(fixUpTaskId);
+
+		result = new ModelAndView("fixUpTask/display");
+		result.addObject("fixUpTask", fixUpTask);
+
+		return result;
+	}
+
+	@RequestMapping(value = "/display", method = RequestMethod.GET)
+	public ModelAndView displayAll(@RequestParam final int fixUpTaskId) {
+		ModelAndView result;
+		FixUpTask fixUpTask;
+
+		fixUpTask = this.fixUpTaskService.findOne(fixUpTaskId);
+
+		result = new ModelAndView("fixUpTask/display");
+		result.addObject("fixUpTask", fixUpTask);
+
+		return result;
+	}
+
+	// Finder search
+
+	@RequestMapping(value = "/searchByKeywordForm")
+	public ModelAndView searchByKeywordForm() {
+		ModelAndView result;
+
+		result = new ModelAndView("fixUpTask/searchByKeyword");
+
+		return result;
+	}
+
+	@RequestMapping(value = "/searchByKeyword", method = RequestMethod.GET)
+	public ModelAndView searchByKeyword(@RequestParam(value = "keyword", required = true) final String keyword) {
+		ModelAndView result;
+
+		visibleFixUpTasks = this.fixUpTaskService.getFixUpTasksByKeyWord(keyword);
+
+		result = new ModelAndView("fixUpTask/list");
+		result.addObject("requestURI", "fixUpTask/list.do");
+
+		return result;
+	}
+
+	// Ancillary methods 
+
+	protected ModelAndView createEditModelAndView(final FixUpTask fixUpTask, final String messageCode) {
+		ModelAndView result;
+
+		result = this.createEditModelAndView(fixUpTask, null);
+
+		return result;
+	}
+
+}

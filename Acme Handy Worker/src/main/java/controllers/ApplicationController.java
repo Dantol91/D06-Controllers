@@ -1,3 +1,4 @@
+
 package controllers;
 
 import java.util.Collection;
@@ -14,39 +15,38 @@ import org.springframework.web.servlet.ModelAndView;
 
 import services.ActorService;
 import services.ApplicationService;
-import services.HandyWorkerService;
-import services.CustomerService;
-import services.MessageService;
 import services.FixUpTaskService;
 import domain.Application;
-import domain.HandyWorker;
-import domain.Customer;
 import domain.FixUpTask;
+import domain.HandyWorker;
 
 @Controller
 @RequestMapping("/application")
-public class ApplicationController extends AbstractController{
-	
+public class ApplicationController extends AbstractController {
+
 	// Services 
-	
-	@Autowired
-	private ApplicationService applicationService;
 
 	@Autowired
-	private ActorService actorService;
+	private ApplicationService	applicationService;
 
 	@Autowired
-	private FixUpTaskService fixUpTaskService;
+	private ActorService		actorService;
 
 	@Autowired
-	private MessageService messageService;
+	private FixUpTaskService	fixUpTaskService;
 
-	@Autowired
-	private HandyWorkerService handyWorkerService;
 
-	@Autowired
-	private CustomerService customerService;
-	
+	/*
+	 * @Autowired
+	 * private MessageService messageService;
+	 * 
+	 * @Autowired
+	 * private HandyWorkerService handyWorkerService;
+	 * 
+	 * @Autowired
+	 * private CustomerService customerService;
+	 */
+
 	// Constructors 
 
 	public ApplicationController() {
@@ -56,36 +56,30 @@ public class ApplicationController extends AbstractController{
 	// Listing 
 
 	@RequestMapping(value = "/handyWorker/list", method = RequestMethod.GET)
-	public ModelAndView listHandyWorker(@RequestParam (required=false)String statusSelection) {
+	public ModelAndView listHandyWorker(@RequestParam(required = false) final String statusSelection) {
 		ModelAndView result;
 		Collection<Application> applications;
 		HandyWorker h;
-		Collection<String> statusSet;
-		
-		h = (HandyWorker) actorService.findByPrincipal();
-		applications = applicationService.getHandyWorkerApplications(e.getId());
-		statusSet = applicationService.getSetOfStatus(h.getId());
-		
-		if(statusSelection!=null){
-			applications = applicationService.getApplicationsByStatusAndHandyWorkerId(e.getId(), statusSelection);
-		}
+
+		h = (HandyWorker) this.actorService.findByPrincipal();
+		applications = this.applicationService.getHandyWorkerApplications(h.getId());
 
 		result = new ModelAndView("application/list");
 		result.addObject("requestURI", "application/handyWorker/list.do");
 		result.addObject("applications", applications);
-		result.addObject("statusSet", statusSet);
 
 		return result;
 	}
-	
+
 	@RequestMapping(value = "/customer/list", method = RequestMethod.GET)
 	public ModelAndView listCustomer() {
 		ModelAndView result;
 		Collection<Application> applications;
-		Customer c;
-		
-		c = (customer) actorService.findByPrincipal();
-		applications = applicationService.getCustomerFixUPTasksApplications(c.getId());
+		//	Customer c;
+
+		//	c = (Customer) this.actorService.findByPrincipal();
+
+		applications = this.applicationService.findAll();
 
 		result = new ModelAndView("application/list");
 		result.addObject("requestURI", "application/customer/list.do");
@@ -93,30 +87,28 @@ public class ApplicationController extends AbstractController{
 
 		return result;
 	}
-	
 
 	// Creation 
 
 	@RequestMapping(value = "/handyWorker/create", method = RequestMethod.GET)
-	public ModelAndView create(@RequestParam (required = false) final Integer fixUpTaskId) {
+	public ModelAndView create(@RequestParam(required = false) final Integer fixUpTaskId) {
 		ModelAndView result;
 		HandyWorker h;
 		Collection<FixUpTask> fixUpTasks;
-		
-		h = (HandyWorker) actorService.findByPrincipal();
-		fixUpTasks = fixUpTaskService.getWithoutApplicationFixUpTasks(h.getId());
+		Application application;
+
+		h = (HandyWorker) this.actorService.findByPrincipal();
+		fixUpTasks = this.fixUpTaskService.getWithoutApplicationFixUpTasks(h.getId());
 		application = this.applicationService.create();
 		result = this.createEditModelAndView(application);
-		result.addObject("fixUpTasks",fixUpTasks);
-		
+		result.addObject("fixUpTasks", fixUpTasks);
 
-		if(fixUpTaskId!=null){
-			result.addObject("fixUpTaskId",fixUpTaskId);
-		}
+		if (fixUpTaskId != null)
+			result.addObject("fixUpTaskId", fixUpTaskId);
 
 		return result;
 	}
-	
+
 	// Edition 
 
 	@RequestMapping(value = "/edit", method = RequestMethod.GET)
@@ -124,8 +116,8 @@ public class ApplicationController extends AbstractController{
 		ModelAndView result;
 		Application application;
 
-		application = applicationService.findOne(applicationId);
-		
+		application = this.applicationService.findOne(applicationId);
+
 		result = this.createEditModelAndView(application);
 
 		return result;
@@ -139,68 +131,49 @@ public class ApplicationController extends AbstractController{
 			result = this.createEditModelAndView(application);
 		else
 			try {
-				Application saved = this.applicationService.save(application);
-				HandyWorker handyWorker = handyWorkerService.findByApplicationId(saved.getId());
-				Customer customer = customerService.getCustomerFromApplicationId(saved.getId());
-				messageService.sendApplicationNotification(handyWorker, customer);
+				//		final Application saved = this.applicationService.save(application);
+				//		final HandyWorker handyWorker = this.handyWorkerService.findByApplicationId(saved.getId());
+				//		final Customer customer = this.customerService.getCustomerFromApplicationId(saved.getId());
+
 				result = new ModelAndView("redirect:handyWorker/list.do");
+
 			} catch (final Throwable oops) {
 				String errorMessage = "application.commit.error";
-				
-				if(oops.getMessage().contains("message.error")){
+
+				if (oops.getMessage().contains("message.error"))
 					errorMessage = oops.getMessage();
-				}
 				result = this.createEditModelAndView(application, errorMessage);
 			}
 
 		return result;
 	}
 
-	@RequestMapping(value = "/edit", method = RequestMethod.POST, params = "delete")
-	public ModelAndView delete(final Application application, final BindingResult binding) {
-		ModelAndView result;
-
-		try {
-			this.applicationService.delete(application);
-			result = new ModelAndView("redirect:list.do");
-		} catch (final Throwable oops) {
-			result = this.createEditModelAndView(application, "application.commit.error");
-		}
-
-		return result;
-	}
-
-	
 	// Change Status 
-	
+
 	@RequestMapping(value = "edit", method = RequestMethod.POST, params = "changeStatus")
 	public ModelAndView changeStatus(@Valid final Application application, final BindingResult binding) {
 		ModelAndView result;
-		
 
 		if (binding.hasErrors())
 			result = this.createEditModelAndView(application);
 		else
 			try {
-				applicationService.changeStatus(application);
-				HandyWorker handyWorker = handyWorkerService.findByApplicationId(application.getId());
-				Customer customer = customerService.getCustomerFromApplicationId(application.getId());
-				messageService.sendApplicationNotification(handyWorker, customer);
-				
+				this.applicationService.changeStatus(application);
+				//			final HandyWorker handyWorker = this.handyWorkerService.findByApplicationId(application.getId());
+				//			final Customer customer = this.customerService.getCustomerFromApplicationId(application.getId());
+
 				result = new ModelAndView("redirect:customer/list.do");
 			} catch (final Throwable oops) {
 				String errorMessage = "application.commit.error";
-				
-				if(oops.getMessage().contains("message.error")){
+
+				if (oops.getMessage().contains("message.error"))
 					errorMessage = oops.getMessage();
-				}
 				result = this.createEditModelAndView(application, errorMessage);
 			}
 
 		return result;
 	}
-	
-	
+
 	// Ancillary methods 
 
 	protected ModelAndView createEditModelAndView(final Application application) {
@@ -213,7 +186,6 @@ public class ApplicationController extends AbstractController{
 
 	protected ModelAndView createEditModelAndView(final Application application, final String message) {
 		ModelAndView result;
-
 
 		result = new ModelAndView("application/edit");
 		result.addObject("application", application);

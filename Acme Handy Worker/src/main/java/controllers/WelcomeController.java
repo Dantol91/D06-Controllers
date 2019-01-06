@@ -10,22 +10,24 @@
 
 package controllers;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.util.Locale;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
+
+import services.ConfigurationService;
 
 @Controller
 @RequestMapping("/welcome")
 public class WelcomeController extends AbstractController {
-	
+
 	// Services 
 
 	@Autowired
-	private ConfigurationService configurationService;
+	private ConfigurationService	configurationService;
+
 
 	// Constructors 
 
@@ -36,19 +38,19 @@ public class WelcomeController extends AbstractController {
 	// Index 
 
 	@RequestMapping(value = "/index")
-	public ModelAndView index(Locale locale) {
+	public ModelAndView index(final Locale locale) {
 		ModelAndView result;
 		String welcomeMessage = "";
-		
-		if("es".equals(locale.getLanguage())){
-			welcomeMessage = configurationService.getConfiguration().getWelcomeMessageES();
-		}else if("en".equals(locale.getLanguage())){
-			welcomeMessage = configurationService.getConfiguration().getWelcomeMessageEN();
-		}
-		
+
+		if ("es".equals(locale.getLanguage()))
+			welcomeMessage = this.configurationService.getConfiguration().getWelcomeMessageES();
+		else if ("en".equals(locale.getLanguage()))
+			welcomeMessage = this.configurationService.getConfiguration().getWelcomeMessageEN();
 
 		result = new ModelAndView("welcome/index");
 		result.addObject("welcomeMessage", welcomeMessage);
 
 		return result;
+	}
+
 }

@@ -1,3 +1,4 @@
+
 package controllers.sponsor;
 
 import java.util.Collection;
@@ -14,9 +15,9 @@ import org.springframework.web.servlet.ModelAndView;
 
 import services.ActorService;
 import services.CreditCardService;
+import services.FixUpTaskService;
 import services.SponsorService;
 import services.SponsorshipService;
-import domain.CreditCard;
 import domain.Sponsor;
 import domain.Sponsorship;
 
@@ -34,13 +35,16 @@ public class SponsorshipController {
 
 	@Autowired
 	private SponsorService		sponsorService;
+
 	@Autowired
 	private CreditCardService	creditCardService;
+
 	@Autowired
-	private TripService tripService;
+	private FixUpTaskService	fixUpTaskService;
+
 
 	// Constructor
-	
+
 	public SponsorshipController() {
 		super();
 	}
@@ -70,7 +74,7 @@ public class SponsorshipController {
 		Sponsorship sponsorship;
 
 		sponsorship = this.sponsorshipService.create();
-		res = this.createEditModelAndView(sponsorship);
+		res = this.createEditModelAndView(sponsorship, null);
 
 		return res;
 	}
@@ -84,7 +88,7 @@ public class SponsorshipController {
 
 		sponsorship = this.sponsorshipService.findOneToEdit(sponsorshipId);
 
-		result = this.createEditModelAndView(sponsorship);
+		result = this.createEditModelAndView(sponsorship, null);
 		result.addObject("sponsorship", sponsorship);
 
 		return result;
@@ -95,7 +99,7 @@ public class SponsorshipController {
 		ModelAndView res;
 
 		if (binding.hasErrors())
-			res = this.createEditModelAndView(sponsorship);
+			res = this.createEditModelAndView(sponsorship, null);
 		else
 			try {
 				this.sponsorshipService.save(sponsorship);
@@ -108,25 +112,25 @@ public class SponsorshipController {
 		return res;
 
 	}
-	
+
 	// Display 
-	
+
 	@RequestMapping(value = "/display", method = RequestMethod.GET)
 	public ModelAndView display(@RequestParam final int sponsorshipId) {
 		ModelAndView result;
 		Sponsorship s;
-		
+
 		s = this.sponsorshipService.findOne(sponsorshipId);
-		
+
 		result = new ModelAndView("sponsorship/display");
-		result.addObject("sponsorship",s);
-		
+		result.addObject("sponsorship", s);
+
 		return result;
 	}
 
 	// Ancillary methods
-	
-	protected ModelAndView createEditModelAndView(final Sponsorship sponsorship) {
+
+	protected ModelAndView createEditModelAndView(final Sponsorship sponsorship, final String messageCode) {
 		ModelAndView res;
 
 		res = this.createEditModelAndView(sponsorship, null);

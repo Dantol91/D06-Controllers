@@ -131,7 +131,7 @@ public class CurriculumService {
 
 	// Other business methods
 
-	public Curriculum getCurriculumByRangerId(final int handyWorkerId) {
+	public Curriculum getCurriculumByHandyWorkerId(final int handyWorkerId) {
 		Assert.notNull(handyWorkerId);
 
 		return this.curriculumRepository.getCurriculumByHandyWorkerId(handyWorkerId);
