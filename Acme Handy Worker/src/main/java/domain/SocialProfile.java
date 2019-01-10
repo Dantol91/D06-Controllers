@@ -6,6 +6,7 @@ import javax.persistence.AccessType;
 import javax.persistence.Entity;
 import javax.persistence.ManyToOne;
 import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 
 import org.hibernate.validator.constraints.NotBlank;
 import org.hibernate.validator.constraints.URL;
@@ -14,21 +15,26 @@ import org.hibernate.validator.constraints.URL;
 @Access(AccessType.PROPERTY)
 public class SocialProfile extends DomainEntity {
 
-	// Constructor
+	// Constructors
 
 	public SocialProfile() {
 		super();
 	}
 
 
-	// Attributes
+	// Attributes 
 
 	private String	nick;
-	private String	name;
-	private String	link;
+	private String	networkName;
+	private String	profile;
+
+	// Relationships
+
+	private Actor	actor;
 
 
 	@NotBlank
+	@NotNull
 	public String getNick() {
 		return this.nick;
 	}
@@ -38,28 +44,24 @@ public class SocialProfile extends DomainEntity {
 	}
 
 	@NotBlank
-	public String getName() {
-		return this.name;
+	@NotNull
+	public String getNetworkName() {
+		return this.networkName;
 	}
 
-	public void setName(final String name) {
-		this.name = name;
+	public void setNetworkName(final String networkName) {
+		this.networkName = networkName;
 	}
 
 	@URL
-	public String getLink() {
-		return this.link;
+	@NotNull
+	public String getProfile() {
+		return this.profile;
 	}
 
-	public void setLink(final String link) {
-		this.link = link;
+	public void setProfile(final String profile) {
+		this.profile = profile;
 	}
-
-
-	// Relationships
-
-	private Actor	actor;
-
 
 	@Valid
 	@ManyToOne(optional = false)

@@ -1,6 +1,8 @@
 
 package controllers;
 
+import java.util.Collection;
+
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,105 +20,112 @@ import domain.Actor;
 import domain.SocialProfile;
 
 @Controller
-@RequestMapping("/socialProfile")
-public class SocialProfileController {
+@RequestMapping("socialprofile/actor")
+public class SocialProfileController extends AbstractController {
 
-	// Services 
+	// Services
+
 	@Autowired
 	private SocialProfileService	socialProfileService;
 	@Autowired
 	private ActorService			actorService;
 
 
-	// Constructors 
+	// List
 
-	public SocialProfileController() {
-		super();
+	@RequestMapping("list")
+	public ModelAndView list() {
+		final ModelAndView res = new ModelAndView("socialprofile/list");
+		final Actor principal = this.actorService.findPrincipal();
+		final Collection<SocialProfile> socialProfiles = this.socialProfileService.findAllByActor(principal);
+		res.addObject("socialProfiles", socialProfiles);
+		res.addObject("requestURI", "socialprofile/actor/list.do");
+		this.isPrincipalAuthorizedEdit(res, principal.getId());
+		return res;
 	}
 
-	// Listing 
+	// Create
 
-	// Creation
-
-	@RequestMapping(value = "/create", method = RequestMethod.GET)
-	public ModelAndView create() {
-		ModelAndView result;
-		SocialProfile socialProfile;
-
-		socialProfile = this.socialProfileService.create();
-		result = this.createEditModelAndView(socialProfile);
-		return result;
+	@SuppressWarnings("unused")
+	@RequestMapping("create")
+	private ModelAndView create() {
+		final Actor actor = this.actorService.findPrincipal();
+		final SocialProfile socialProfile = this.socialProfileService.create(actor);
+		final ModelAndView res = this.createEditModelAndView(socialProfile);
+		return res;
 	}
 
-	// Edition 
+	// Edit
 
-	@RequestMapping(value = "/edit", method = RequestMethod.GET)
-	public ModelAndView edit(@RequestParam final int socialProfileId) {
-		ModelAndView result;
-
-		final SocialProfile socialProfile = this.socialProfileService.findOneToEdit(socialProfileId);
+	@SuppressWarnings("unused")
+	@RequestMapping("edit")
+	private ModelAndView edit(@RequestParam(required = true) final Integer socialProfileId) {
+		final SocialProfile socialProfile = this.socialProfileService.findOne(socialProfileId);
 		Assert.notNull(socialProfile);
-
-		result = this.createEditModelAndView(socialProfile);
-		final Actor actor = this.actorService.findByPrincipal();
-		result.addObject(actor);
-		return result;
+		final ModelAndView res = this.createEditModelAndView(socialProfile);
+		return res;
 	}
 
-	@RequestMapping(value = "/edit", method = RequestMethod.POST, params = "save")
-	public ModelAndView save(@Valid final SocialProfile socialProfile, final BindingResult binding) {
-		ModelAndView result;
-		String type;
-
-		type = this.actorService.getType(this.actorService.findByPrincipal().getUserAccount()).toLowerCase();
-		result = new ModelAndView("redirect:/actor/" + type + "/edit.do");
-
+	@SuppressWarnings("unused")
+	@RequestMapping(value = "edit", method = RequestMethod.POST, params = "save")
+	private ModelAndView save(@Valid final SocialProfile socialProfile, final BindingResult binding) {
+		ModelAndView res = null;
 		if (binding.hasErrors())
-			result = this.createEditModelAndView(socialProfile);
+			res = this.createEditModelAndView(socialProfile);
 		else
 			try {
 				this.socialProfileService.save(socialProfile);
-				this.socialProfileService.addToPrincipal(socialProfile);
-			} catch (final Throwable oops) {
-				result = this.createEditModelAndView(socialProfile, "socialProfile.commit.error");
+				res = new ModelAndView("redirect:list.do");
+			} catch (final Throwable t) {
+				res = new ModelAndView("cannot.commit.error");
 			}
-
-		return result;
+		return res;
 	}
 
-	@RequestMapping(value = "/edit", method = RequestMethod.POST, params = "delete")
-	public ModelAndView delete(final SocialProfile socialProfile, final BindingResult binding) {
-		ModelAndView result;
-		String type;
+	// Delete
 
-		type = this.actorService.getType(this.actorService.findByPrincipal().getUserAccount()).toLowerCase();
-		result = new ModelAndView("redirect:/actor/" + type + "/edit.do");
-
+	@SuppressWarnings("unused")
+	@RequestMapping(value = "edit", method = RequestMethod.POST, params = "delete")
+	private ModelAndView delete(final SocialProfile socialProfile, final BindingResult binding) {
+		ModelAndView res = null;
 		try {
 			this.socialProfileService.delete(socialProfile);
-		} catch (final Throwable oops) {
-			result = this.createEditModelAndView(socialProfile, "socialProfile.commit.error");
+			res = new ModelAndView("redirect:list.do");
+		} catch (final Throwable t) {
+			res = new ModelAndView("cannot.commit.error");
 		}
-		return result;
+		return res;
 	}
 
-	// Ancillary methods 
+	// Ancillary methods
 
 	private ModelAndView createEditModelAndView(final SocialProfile socialProfile) {
-		ModelAndView result;
-
-		result = this.createEditModelAndView(socialProfile, null);
-
-		return result;
+		return this.createEditModelAndView(socialProfile, null);
 	}
 
 	private ModelAndView createEditModelAndView(final SocialProfile socialProfile, final String message) {
-		ModelAndView result;
+		final ModelAndView res = new ModelAndView("socialprofile/edit");
+		res.addObject("socialProfile", socialProfile);
+		res.addObject("message", message);
+		this.isPrincipalAuthorizedEdit(res, socialProfile);
+		return res;
+	}
 
-		result = new ModelAndView("socialProfile/edit");
-		result.addObject("socialProfile", socialProfile);
+	private void isPrincipalAuthorizedEdit(final ModelAndView modelAndView, final SocialProfile socialProfile) {
+		Boolean res = false;
+		final Actor principal = this.actorService.findPrincipal();
+		if (principal.equals(socialProfile.getActor()))
+			res = true;
+		modelAndView.addObject("isPrincipalAuthorizedEdit", res);
+	}
 
-		return result;
+	private void isPrincipalAuthorizedEdit(final ModelAndView modelAndView, final Integer actorId) {
+		Boolean res = false;
+		final Actor principal = this.actorService.findPrincipal();
+		final Actor actor = this.actorService.findOne(actorId);
+		if (principal.equals(actor))
+			res = true;
+		modelAndView.addObject("isPrincipalAuthorizedEdit", res);
 	}
 
 }

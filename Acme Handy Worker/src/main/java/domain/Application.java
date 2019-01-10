@@ -7,18 +7,25 @@ import javax.persistence.Access;
 import javax.persistence.AccessType;
 import javax.persistence.Entity;
 import javax.persistence.ManyToOne;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
+import javax.persistence.Table;
+import javax.persistence.UniqueConstraint;
 import javax.validation.Valid;
+import javax.validation.constraints.Digits;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Past;
 import javax.validation.constraints.Pattern;
 
+import org.hibernate.validator.constraints.NotBlank;
 import org.springframework.format.annotation.DateTimeFormat;
 
 @Entity
 @Access(AccessType.PROPERTY)
+@Table(uniqueConstraints = {
+	@UniqueConstraint(columnNames = {
+		"handy_worker", "fixup_task"
+	})
+})
 public class Application extends DomainEntity {
 
 	// Constructors
@@ -28,71 +35,32 @@ public class Application extends DomainEntity {
 	}
 
 
-	// Attributes 
+	//Attributes
 
-	private Date	registerMoment;
-	private String	status;
-	private double	offeredPrice;
-	private String	comment;
+	private double		price;
+	private Date		moment;
+	private String		status;
+	private String		workerComments;
+	private String		customerComments;
+	private CreditCard	creditCard;
 
+	//Relationships
 
-	@Past
-	@NotNull
-	@Temporal(TemporalType.DATE)
-	@DateTimeFormat(pattern = "dd/MM/yyyy")
-	public Date getRegisterMoment() {
-		return this.registerMoment;
-	}
-
-	public void setRegisterMoment(final Date registerMoment) {
-		this.registerMoment = registerMoment;
-	}
-
-	@Pattern(regexp = "^PENDING|ACCEPTED|REJECTED$")
-	public String getStatus() {
-		return this.status;
-	}
-
-	public void setStatus(final String status) {
-		this.status = status;
-	}
-
-	@Min(0)
-	@Valid
-	public double getOfferedPrice() {
-		return this.offeredPrice;
-	}
-
-	public void setOfferedPrice(final double offeredPrice) {
-		this.offeredPrice = offeredPrice;
-	}
-
-	public String getComment() {
-		return this.comment;
-	}
-
-	public void setComment(final String comment) {
-		this.comment = comment;
-	}
-
-
-	// Relationships
-
-	private CreditCard	creditcard;
 	private HandyWorker	handyWorker;
-	private FixUpTask	fixUpTask;
+	private FixupTask	fixupTask;
 
 
 	@Valid
-	@ManyToOne(optional = true)
-	public CreditCard getCreditcard() {
-		return this.creditcard;
+	@ManyToOne(optional = false)
+	public FixupTask getFixupTask() {
+		return this.fixupTask;
 	}
 
-	public void setCreditcard(final CreditCard creditcard) {
-		this.creditcard = creditcard;
+	public void setFixupTask(final FixupTask fixupTask) {
+		this.fixupTask = fixupTask;
 	}
 
+	@Valid
 	@ManyToOne(optional = false)
 	public HandyWorker getHandyWorker() {
 		return this.handyWorker;
@@ -102,15 +70,61 @@ public class Application extends DomainEntity {
 		this.handyWorker = handyWorker;
 	}
 
-	@NotNull
-	@Valid
-	@ManyToOne(optional = false)
-	public FixUpTask getFixUpTask() {
-		return this.fixUpTask;
+	@Digits(fraction = 2, integer = 100)
+	@Min(value = 0)
+	public double getPrice() {
+		return this.price;
 	}
 
-	public void setFixUpTask(final FixUpTask fixUpTask) {
-		this.fixUpTask = fixUpTask;
+	public void setPrice(final double price) {
+		this.price = price;
+	}
+
+	@Past
+	@NotNull
+	@DateTimeFormat(pattern = "dd/MM/yyyy")
+	public Date getMoment() {
+		return this.moment;
+	}
+
+	public void setMoment(final Date moment) {
+		this.moment = moment;
+	}
+
+	@NotBlank
+	@Pattern(regexp = "^(PENDING)|(ACCEPTED)|(REJECTED)$")
+	@NotNull
+	public String getStatus() {
+		return this.status;
+	}
+
+	public void setStatus(final String status) {
+		this.status = status;
+	}
+
+	public String getWorkerComments() {
+		return this.workerComments;
+	}
+
+	public void setWorkerComments(final String workerComments) {
+		this.workerComments = workerComments;
+	}
+
+	public String getCustomerComments() {
+		return this.customerComments;
+	}
+
+	public void setCustomerComments(final String customerComments) {
+		this.customerComments = customerComments;
+	}
+
+	@Valid
+	public CreditCard getCreditCard() {
+		return this.creditCard;
+	}
+
+	public void setCreditCard(final CreditCard creditCard) {
+		this.creditCard = creditCard;
 	}
 
 }

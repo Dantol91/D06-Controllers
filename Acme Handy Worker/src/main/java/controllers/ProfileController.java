@@ -18,8 +18,7 @@ import org.springframework.web.servlet.ModelAndView;
 @RequestMapping("/profile")
 public class ProfileController extends AbstractController {
 
-	// Action-1 ---------------------------------------------------------------		
-
+	// Action-1 
 	@RequestMapping("/action-1")
 	public ModelAndView action1() {
 		ModelAndView result;
@@ -29,7 +28,7 @@ public class ProfileController extends AbstractController {
 		return result;
 	}
 
-	// Action-2 ---------------------------------------------------------------		
+	// Action-2	
 
 	@RequestMapping("/action-2")
 	public ModelAndView action2() {
@@ -40,7 +39,7 @@ public class ProfileController extends AbstractController {
 		return result;
 	}
 
-	// Action-2 ---------------------------------------------------------------		
+	// Action-2 -		
 
 	@RequestMapping("/action-3")
 	public ModelAndView action3() {

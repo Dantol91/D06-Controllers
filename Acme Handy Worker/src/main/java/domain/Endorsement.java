@@ -6,11 +6,10 @@ import java.util.Date;
 import javax.persistence.Access;
 import javax.persistence.AccessType;
 import javax.persistence.Entity;
-import javax.persistence.ManyToOne;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
+import javax.persistence.OneToOne;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Past;
 
 import org.hibernate.validator.constraints.NotBlank;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -26,14 +25,39 @@ public class Endorsement extends DomainEntity {
 	}
 
 
-	// Attributes
+	// Attributes 
 
-	private Date	moment;
-	private String	comment;
+	private Date		moment;
+	private String		comments;
+
+	// Relationships
+
+	private Endorsable	sender;
+	private Endorsable	receiver;
 
 
+	@Valid
+	@OneToOne(optional = false)
+	public Endorsable getSender() {
+		return this.sender;
+	}
+
+	public void setSender(final Endorsable sender) {
+		this.sender = sender;
+	}
+
+	@Valid
+	@OneToOne(optional = false)
+	public Endorsable getReceiver() {
+		return this.receiver;
+	}
+
+	public void setReceiver(final Endorsable receiver) {
+		this.receiver = receiver;
+	}
+
+	@Past
 	@NotNull
-	@Temporal(TemporalType.DATE)
 	@DateTimeFormat(pattern = "dd/MM/yyyy")
 	public Date getMoment() {
 		return this.moment;
@@ -44,41 +68,13 @@ public class Endorsement extends DomainEntity {
 	}
 
 	@NotBlank
-	public String getComment() {
-		return this.comment;
-	}
-
-	public void setComment(final String comment) {
-		this.comment = comment;
-	}
-
-
-	// Relationships
-
-	private Actor	recipient;
-	private Actor	sender;
-
-
 	@NotNull
-	@Valid
-	@ManyToOne(optional = false)
-	public Actor getRecipient() {
-		return this.recipient;
+	public String getComments() {
+		return this.comments;
 	}
 
-	public void setRecipient(final Actor recipient) {
-		this.recipient = recipient;
-	}
-
-	@NotNull
-	@Valid
-	@ManyToOne(optional = false)
-	public Actor getSender() {
-		return this.sender;
-	}
-
-	public void setSender(final Actor sender) {
-		this.sender = sender;
+	public void setComments(final String comments) {
+		this.comments = comments;
 	}
 
 }

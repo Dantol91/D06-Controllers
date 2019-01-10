@@ -4,6 +4,9 @@ package domain;
 import javax.persistence.Access;
 import javax.persistence.AccessType;
 import javax.persistence.Entity;
+import javax.persistence.ManyToOne;
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 
 import org.hibernate.validator.constraints.NotBlank;
 import org.hibernate.validator.constraints.URL;
@@ -12,21 +15,26 @@ import org.hibernate.validator.constraints.URL;
 @Access(AccessType.PROPERTY)
 public class MiscellaneousRecord extends DomainEntity {
 
-	// Constructor
+	// Constructors
 
 	public MiscellaneousRecord() {
 		super();
 	}
 
 
-	// Attributes
+	// Attributes 
 
-	private String	title;
-	private String	attachmentLink;
-	private String	comment;
+	private String		title;
+	private String		attachment;
+	private String		comments;
+
+	// Relationships
+
+	private Curriculum	curriculum;
 
 
 	@NotBlank
+	@NotNull
 	public String getTitle() {
 		return this.title;
 	}
@@ -36,22 +44,30 @@ public class MiscellaneousRecord extends DomainEntity {
 	}
 
 	@URL
-	public String getAttachmentLink() {
-		return this.attachmentLink;
+	public String getAttachment() {
+		return this.attachment;
 	}
 
-	public void setAttachmentLink(final String attachmentLink) {
-		this.attachmentLink = attachmentLink;
+	public void setAttachment(final String attachment) {
+		this.attachment = attachment;
 	}
 
-	public String getComment() {
-		return this.comment;
+	public String getComments() {
+		return this.comments;
 	}
 
-	public void setComment(final String comment) {
-		this.comment = comment;
+	public void setComments(final String comments) {
+		this.comments = comments;
 	}
 
-	// Relationships
+	@Valid
+	@ManyToOne(optional = false)
+	public Curriculum getCurriculum() {
+		return this.curriculum;
+	}
+
+	public void setCurriculum(final Curriculum curriculum) {
+		this.curriculum = curriculum;
+	}
 
 }

@@ -3,101 +3,100 @@ package services;
 
 import java.util.Collection;
 
-import javax.transaction.Transactional;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
 import repositories.PersonalRecordRepository;
-import domain.HandyWorker;
+import domain.Curriculum;
 import domain.PersonalRecord;
 
 @Service
 @Transactional
 public class PersonalRecordService {
 
-	//Managed repository
+	//Managed Repository
+
 	@Autowired
 	private PersonalRecordRepository	personalRecordRepository;
 
-	//Supporting services
+	// Supporting Service
+
 	@Autowired
-	private ActorService				actorService;
-	@Autowired
-	private ConfigurationService		configurationService;
-	@Autowired
-	private AdministratorService		administratorService;
+	private CurriculumService			curriculumService;
 
 
-	//Constructor
 	public PersonalRecordService() {
 		super();
 	}
-
-	//Simple CRUD methods
+	// Simple CRUD methods
 
 	public PersonalRecord create() {
-		PersonalRecord personalRecord;
-		personalRecord = new PersonalRecord();
-
-		return personalRecord;
-	}
-
-	public PersonalRecord save(final PersonalRecord personalRecord) {
-		Assert.notNull(personalRecord);
-
 		PersonalRecord pr;
-
-		pr = this.personalRecordRepository.save(personalRecord);
-
-		// Comprobamos si es spam
-		this.administratorService.checkIsSpam(personalRecord.getFullName());
-		this.administratorService.checkIsSpam(personalRecord.getEmail());
-		this.administratorService.checkIsSpam(personalRecord.getLinkedInProfile());
-		this.administratorService.checkIsSpam(personalRecord.getPhoto());
-
-		final String tlf = this.configurationService.checkPhoneNumber(personalRecord.getPhone());
-		personalRecord.setPhone(tlf);
-
+		Curriculum c;
+		c = this.curriculumService.create();
+		pr = new PersonalRecord();
+		pr.setCurriculum(c);
 		return pr;
-
 	}
 
 	public Collection<PersonalRecord> findAll() {
-		return this.personalRecordRepository.findAll();
+		Collection<PersonalRecord> pr;
+		pr = this.personalRecordRepository.findAll();
+		return pr;
 	}
 
 	public PersonalRecord findOne(final int personalRecordId) {
-		PersonalRecord result;
+		PersonalRecord res;
+		res = this.personalRecordRepository.findOne(personalRecordId);
+		return res;
 
-		result = this.personalRecordRepository.findOne(personalRecordId);
-
-		return result;
 	}
 
-	public PersonalRecord findOneToEdit(final int personalRecordId) {
-		PersonalRecord result;
-
-		result = this.personalRecordRepository.findOne(personalRecordId);
-
-		this.checkPrincipal(result);
-
-		return result;
+	public PersonalRecord save(final PersonalRecord p) {
+		Assert.notNull(p);
+		PersonalRecord res;
+		System.out.println("a");
+		System.out.println(p.getFullName());
+		System.out.println(p.getEmail());
+		System.out.println(p.getLinkedinProfile());
+		System.out.println(p.getPhone());
+		System.out.println(p.getPhoto());
+		System.out.println(p.getCurriculum());
+		res = this.personalRecordRepository.save(p);
+		System.out.println(p.getFullName());
+		System.out.println("b");
+		return res;
 	}
 
-	public void delete(final PersonalRecord pr) {
-		this.personalRecordRepository.delete(pr);
+	public void delete(final PersonalRecord p) {
+		Assert.notNull(p);
+
+		this.personalRecordRepository.delete(p);
 	}
 
-	//Other business methods
+	public void delete(final Collection<PersonalRecord> pr) {
 
-	public void checkPrincipal(final PersonalRecord mr) {
-		HandyWorker h;
-
-		h = (HandyWorker) this.actorService.findByPrincipal();
-
-		Assert.isTrue(h.getCurriculum().getPersonalRecord().equals(mr));
+		for (final PersonalRecord i : pr) {
+			Assert.notNull(i);
+			this.personalRecordRepository.delete(i);
+		}
 	}
 
+	public PersonalRecord findOne(final Curriculum dependency) {
+		Assert.notNull(dependency);
+		Assert.isTrue(dependency.getId() > 0);
+		Assert.notNull(this.curriculumService.findOne(dependency.getId()));
+		return dependency.getPersonalRecord();
+	}
+
+	public PersonalRecord create(final Curriculum dependency) {
+		Assert.notNull(dependency);
+		Assert.isTrue(dependency.getId() > 0);
+		Assert.notNull(this.curriculumService.findOne(dependency.getId()));
+		final PersonalRecord res = this.create();
+		res.setCurriculum(dependency);
+		return res;
+	}
 }

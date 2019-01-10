@@ -1,34 +1,39 @@
+
 package converters;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
-import repositories.FixUpTaskRepository;
-import domain.FixUpTask;
+import repositories.FixupTaskRepository;
+import domain.FixupTask;
 
 @Component
 @Transactional
-public class StringToFixUpTaskConverter implements Converter<String, FixUpTask> {
+public class StringToFixupTaskConverter implements Converter<String, FixupTask> {
 
 	@Autowired
-	FixUpTaskRepository	fixUpTaskRepository;
+	private FixupTaskRepository	repository;
 
 
 	@Override
-	public FixUpTask convert(final String text) {
-		FixUpTask result;
+	public FixupTask convert(final String s) {
+		FixupTask res;
 		int id;
 
 		try {
-			id = Integer.valueOf(text);
-			result = this.fixUpTaskRepository.findOne(id);
-		} catch (final Throwable oops) {
-			throw new IllegalArgumentException(oops);
+			if (StringUtils.isEmpty(s))
+				res = null;
+			else {
+				id = Integer.valueOf(s);
+				res = this.repository.findOne(id);
+			}
+		} catch (final Throwable t) {
+			throw new IllegalArgumentException(t);
 		}
-
-		return result;
+		return res;
 	}
 
 }

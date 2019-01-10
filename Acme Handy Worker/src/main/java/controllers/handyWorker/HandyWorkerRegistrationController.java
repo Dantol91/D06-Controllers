@@ -1,97 +1,122 @@
+/*
+ * HandyWorkerController.java
+ * 
+ * Copyright (C) 2018 Universidad de Sevilla
+ * 
+ * The use of this project is hereby constrained to the conditions of the
+ * TDG Licence, a copy of which you may download from
+ * http://www.tdg-seville.info/License.html
+ */
+
 package controllers.handyWorker;
 
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.encoding.Md5PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
 
+import security.UserAccount;
+import services.ActorService;
 import services.HandyWorkerService;
+import services.SocialProfileService;
+import services.UserAccountService;
+import controllers.AbstractController;
 import domain.HandyWorker;
 
 @Controller
-@RequestMapping("/handyWorker/registration")
-public class HandyWorkerRegistrationController {
-
-	// Services
-
-	@Autowired
-	private HandyWorkerService handyWorkerService;
+@RequestMapping("/none/handyWorker")
+public class HandyWorkerRegistrationController extends AbstractController {
 
 	// Constructors
-
 
 	public HandyWorkerRegistrationController() {
 		super();
 	}
 
-	// Creation
 
-	@RequestMapping(value = "/registration", method = RequestMethod.GET)
+	// -Services
+
+	@Autowired
+	HandyWorkerService		handyWorkerService;
+
+	@Autowired
+	ActorService			actorService;
+
+	@Autowired
+	SocialProfileService	socialProfileService;
+
+	@Autowired
+	UserAccountService		userAccountService;
+
+
+	// Create
+
+	@RequestMapping(value = "/create", method = RequestMethod.GET)
 	public ModelAndView create() {
-		ModelAndView res;
-		HandyWorker handyWorker;
+		ModelAndView result;
+		final HandyWorker handyWorker;
 
-		handyWorker = handyWorkerService.create();
-		res = createEditModelAndView(handyWorker);
-
-		return res;
+		handyWorker = this.handyWorkerService.create();
+		result = new ModelAndView("none/handyWorker/create");
+		result.addObject("handyWorker", handyWorker);
+		return result;
 	}
 
-	// Edit
-	
-	@RequestMapping(value = "/registration", method = RequestMethod.POST, params = "save")
-	public ModelAndView save(@Valid HandyWorker handyWorker, BindingResult binding) {
+	@RequestMapping(value = "/create", method = RequestMethod.POST, params = "save")
+	public ModelAndView save(@Valid final HandyWorker handyWorker, final BindingResult binding) {
+		ModelAndView result;
 
-		ModelAndView res;
-
+		final Md5PasswordEncoder encoder = new Md5PasswordEncoder();
+		handyWorker.getUserAccount().setPassword(encoder.encodePassword(handyWorker.getUserAccount().getPassword(), null));
 		if (binding.hasErrors()) {
-
-			res = createEditModelAndView(handyWorker);
-
-		} else {
+			for (final ObjectError error : binding.getAllErrors())
+				System.out.println(error.getDefaultMessage());
+			result = this.createEditModelAndView(handyWorker);
+			result.addObject("handyWorker", handyWorker);
+			result.addObject("message", "handyWorker.commit.error");
+		} else
 			try {
-				handyWorkerService.save(handyWorker);
+				final String make = handyWorker.getName() + " " + handyWorker.getMiddleName() + " " + handyWorker.getSurname();
+				handyWorker.setMake(make);
+				System.out.println(make);
+				this.handyWorkerService.save(handyWorker);
+				result = new ModelAndView("redirect:/handyWorker/display.do");
+			} catch (final Throwable ops) {
 
-				res = new ModelAndView("redirect:/");
-
-			} catch (Throwable oops) {
-				String errorMessage = "application.commit.error";
-
-				if (oops.getMessage().contains("message.error")) {
-					errorMessage = oops.getMessage();
-				}
-				res = createEditModelAndView(handyWorker, errorMessage);
-
+				result = new ModelAndView("none/handyWorker/create");
+				result.addObject("handyWorker", handyWorker);
+				result.addObject("message", "handyWorker.commit.error");
 			}
 
-		}
-		return res;
+		return result;
 
 	}
 
-	// Ancillary methods
+	protected ModelAndView createEditModelAndView(final HandyWorker handyWorker) {
+		ModelAndView result;
 
-	protected ModelAndView createEditModelAndView(HandyWorker handyWorker) {
-		ModelAndView res;
+		result = this.createEditModelAndView(handyWorker, null);
 
-		res = createEditModelAndView(handyWorker, null);
-
-		return res;
+		return result;
 	}
 
-	protected ModelAndView createEditModelAndView(HandyWorker handyWorker,
-			String message) {
-		ModelAndView res;
+	protected ModelAndView createEditModelAndView(final HandyWorker handyWorker, final String messageCode) {
+		final ModelAndView result;
+		UserAccount userAccount = new UserAccount();
+		userAccount = handyWorker.getUserAccount();
 
-		res = new ModelAndView("handyWorker/registration");
-		res.addObject("handyWorker", handyWorker);
-		res.addObject("message", message);
+		result = new ModelAndView("none/handyWorker/create");
+		result.addObject("handyWorker", handyWorker);
+		result.addObject("userAccount", userAccount);
+		result.addObject("message", messageCode);
 
-		return res;
+		return result;
 	}
 
 }

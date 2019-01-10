@@ -1,8 +1,10 @@
+
 package converters;
+
+import javax.transaction.Transactional;
 
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 import domain.Section;
 
@@ -13,7 +15,6 @@ public class SectionToStringConverter implements Converter<Section, String> {
 	@Override
 	public String convert(final Section section) {
 		String result;
-
 		if (section == null)
 			result = null;
 		else
@@ -21,4 +22,5 @@ public class SectionToStringConverter implements Converter<Section, String> {
 
 		return result;
 	}
+
 }

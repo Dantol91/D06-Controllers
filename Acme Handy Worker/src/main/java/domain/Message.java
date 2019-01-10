@@ -1,14 +1,14 @@
 
 package domain;
 
+import java.util.Collection;
 import java.util.Date;
 
 import javax.persistence.Access;
 import javax.persistence.AccessType;
+import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.ManyToOne;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Past;
@@ -28,18 +28,33 @@ public class Message extends DomainEntity {
 	}
 
 
-	// Attributes
+	// Attributes 
 
-	private Date	moment;
-	private String	subject;
-	private String	body;
-	private String	priority;
-	private String	tags;
+	private Date				moment;
+	private String				subject;
+	private String				body;
+	private String				priority;
+	private Collection<String>	tags;
 
+	// Relationships
+
+	private Folder				folder;
+	private Actor				sender;
+	private Actor				receiver;
+
+
+	@NotNull
+	@ManyToOne
+	public Folder getFolder() {
+		return this.folder;
+	}
+
+	public void setFolder(final Folder folder) {
+		this.folder = folder;
+	}
 
 	@Past
 	@NotNull
-	@Temporal(TemporalType.DATE)
 	@DateTimeFormat(pattern = "dd/MM/yyyy")
 	public Date getMoment() {
 		return this.moment;
@@ -50,6 +65,7 @@ public class Message extends DomainEntity {
 	}
 
 	@NotBlank
+	@NotNull
 	public String getSubject() {
 		return this.subject;
 	}
@@ -59,6 +75,7 @@ public class Message extends DomainEntity {
 	}
 
 	@NotBlank
+	@NotNull
 	public String getBody() {
 		return this.body;
 	}
@@ -67,7 +84,9 @@ public class Message extends DomainEntity {
 		this.body = body;
 	}
 
-	@Pattern(regexp = "(^HIGH|NEUTRAL|LOW$)")
+	@NotBlank
+	@Pattern(regexp = "^(HIGH)|(NEUTRAL)|(LOW)$")
+	@NotNull
 	public String getPriority() {
 		return this.priority;
 	}
@@ -76,33 +95,16 @@ public class Message extends DomainEntity {
 		this.priority = priority;
 	}
 
-	public String getTags() {
+	@NotNull
+	@ElementCollection
+	public Collection<String> getTags() {
 		return this.tags;
 	}
 
-	public void setTags(final String tags) {
+	public void setTags(final Collection<String> tags) {
 		this.tags = tags;
 	}
 
-
-	// Relationships
-
-	private Actor	recipient;
-	private Actor	sender;
-
-
-	@NotNull
-	@Valid
-	@ManyToOne(optional = false)
-	public Actor getRecipient() {
-		return this.recipient;
-	}
-
-	public void setRecipient(final Actor recipient) {
-		this.recipient = recipient;
-	}
-
-	@NotNull
 	@Valid
 	@ManyToOne(optional = false)
 	public Actor getSender() {
@@ -111,6 +113,16 @@ public class Message extends DomainEntity {
 
 	public void setSender(final Actor sender) {
 		this.sender = sender;
+	}
+
+	@Valid
+	@ManyToOne(optional = false)
+	public Actor getReceiver() {
+		return this.receiver;
+	}
+
+	public void setReceiver(final Actor receiver) {
+		this.receiver = receiver;
 	}
 
 }

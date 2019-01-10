@@ -1,32 +1,53 @@
 
 package domain;
 
+import java.util.List;
+
 import javax.persistence.Access;
 import javax.persistence.AccessType;
+import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
+import javax.persistence.ManyToOne;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
 
 import org.hibernate.validator.constraints.NotBlank;
-import org.hibernate.validator.constraints.URL;
 
 @Entity
 @Access(AccessType.PROPERTY)
 public class Section extends DomainEntity {
 
-	// Constructor
+	// Constructors
 
 	public Section() {
 		super();
 	}
 
 
-	// Attributes
+	// Attributes 
 
-	private String	title;
-	private String	text;
-	private String	picture;
+	private String		title;
+	private String		text;
+	private List<Url>	pictures;
+	private int			numberOrder;
 
+	// Relationships
+
+	private Tutorial	tutorial;
+
+
+	@NotNull
+	@ManyToOne(optional = false)
+	public Tutorial getTutorial() {
+		return this.tutorial;
+	}
+
+	public void setTutorial(final Tutorial tutorial) {
+		this.tutorial = tutorial;
+	}
 
 	@NotBlank
+	@NotNull
 	public String getTitle() {
 		return this.title;
 	}
@@ -36,6 +57,7 @@ public class Section extends DomainEntity {
 	}
 
 	@NotBlank
+	@NotNull
 	public String getText() {
 		return this.text;
 	}
@@ -44,15 +66,23 @@ public class Section extends DomainEntity {
 		this.text = text;
 	}
 
-	@URL
-	public String getPicture() {
-		return this.picture;
+	@NotNull
+	@ElementCollection
+	public List<Url> getPictures() {
+		return this.pictures;
 	}
 
-	public void setPicture(final String picture) {
-		this.picture = picture;
+	public void setPictures(final List<Url> pictures) {
+		this.pictures = pictures;
 	}
 
-	// Relationships
+	@Min(value = 0)
+	public int getNumberOrder() {
+		return this.numberOrder;
+	}
+
+	public void setNumberOrder(final int numberOrder) {
+		this.numberOrder = numberOrder;
+	}
 
 }

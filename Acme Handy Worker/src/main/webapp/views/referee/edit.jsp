@@ -1,5 +1,5 @@
 <%--
- * edit.jsp
+ * action-2.jsp
  *
  * Copyright (C) 2018 Universidad de Sevilla
  * 
@@ -8,170 +8,113 @@
  * http://www.tdg-seville.info/License.html
  --%>
 
-<%@page language="java" contentType="text/html; charset=ISO-8859-1"
-	pageEncoding="ISO-8859-1"%>
+<%@page language="java" contentType="text/html; charset=ISO-8859-1" pageEncoding="ISO-8859-1"%>
 
-<%@taglib prefix="jstl" uri="http://java.sun.com/jsp/jstl/core"%>
-<%@taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
-<%@taglib prefix="tiles" uri="http://tiles.apache.org/tags-tiles"%>
+<%@taglib prefix="jstl"	uri="http://java.sun.com/jsp/jstl/core"%>
 <%@taglib prefix="spring" uri="http://www.springframework.org/tags"%>
 <%@taglib prefix="form" uri="http://www.springframework.org/tags/form"%>
-<%@taglib prefix="security"
-	uri="http://www.springframework.org/security/tags"%>
+<%@taglib prefix="security" uri="http://www.springframework.org/security/tags"%>
 <%@taglib prefix="display" uri="http://displaytag.sf.net"%>
-<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
-<%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn"%>
 
-<script type="text/javascript">
-
-$(document).ready(function() {
-	 $("#formID").submit(function(){
-	var m = document.getElementById("phone").value;
-	var expreg = /^(\+\d{1,3})?\s(\(\d{3}\))?\s?\d{4,100}$/;
+<form:form action="referee/referee-administrator/edit.do" modelAttribute="referee" method="post">
 	
-	if(!expreg.test(m)){
-		
-		return confirm("Are you sure you want to save this phone?");
-	}
-});
-});
-
-</script>
-
-<form:form action="actor/referee/edit.do" id="formID"
-	modelAttribute="referee">
-
 	<form:hidden path="id" />
 	<form:hidden path="version" />
-	<form:hidden path="boxes" />
-	<form:hidden path="socialProfiles" />
-	<form:hidden path="userAccount" />
-
-
-	<form:label path="name">
-		<spring:message code="referee.name" />:
-	</form:label>
-	<br>
-	<form:input path="name" />
-	<form:errors cssClass="error" path="name" />
-	<br>
-	<br>
+	<form:hidden path="suspicious" />
+	<form:hidden path="userAccount.banned" />
+	<form:hidden path="userAccount.authorities[0]" />
 	
-	<form:label path="middleName">
-		<spring:message code="referee.middleName" />:
-	</form:label>
-	<br>
-	<form:input path="middleName" />
-	<form:errors cssClass="error" path="middleName" />
-	<br>
-	<br>
-
-	<form:label path="surname">
-		<spring:message code="referee.surname" />:
-	</form:label>
-	<br>
-	<form:input path="surname" />
-	<form:errors cssClass="error" path="surname" />
-	<br>
-	<br>
-
-	<form:label path="email">
-		<spring:message code="referee.email" />:
-	</form:label>
-	<br>
-	<form:input path="email" />
-	<form:errors cssClass="error" path="email" />
-	<br>
-	<br>
-
-	<form:label path="phone">
-		<spring:message code="referee.phone" />:
-	</form:label>
-	<br>
-	<form:input id="phone" path="phone" />
-	<form:errors cssClass="error" path="phone" />
-	<br>
-	<br>
-
-
-	<form:label path="address">
-		<spring:message code="referee.address" />:
-	</form:label>
-	<br>
-	<form:input path="address" />
-	<form:errors cssClass="error" path="address" />
-	<br>
-	<br>
-	
-	<display:column title="${photoHeader}">
-		<img src="${row.photo}"
-			alt="<spring:message code="image.notfound"/>" width="75" height="75" />
-	</display:column>
-
-
-
-
-	<input type="submit" name="save"
-		value="<spring:message code="referee.edit" />" />
-
-	<input type="button" name="cancel"
-		value="<spring:message code="referee.cancel" />"
-		onclick="javascript: relativeRedir('/');" />
-	<br />
-
-</form:form>
-<h2>Social Profiles:</h2>
-
-<display:table pagesize="3" class="displaytag" keepStatus="true"
-	name="socialProfiles" requestURI="actor/admin/referee/edit.do" id="row">
-
-	<!-- Action links -->
-
-
-	<!-- Attributes -->
-	
-	<spring:message code="referee.socialProfile.nick"
-		var="nickHeader" />
-	<display:column property="nick" title="${nickHeader}" sortable="false" />
-
-	<spring:message code="referee.socialProfile.name"
-		var="nameHeader" />
-	<display:column property="name"
-		title="${nameHeader}" sortable="false" />
-
-	<spring:message code="referee.socialProfile.link"
-		var="linkHeader" />
+	<fieldset><legend><spring:message code="referee.useraccount" /></legend>
+		<div>	
+			<form:label path="userAccount.username">
+				<spring:message code="referee.useraccount.username" />
+			</form:label>	
+			<form:input path="userAccount.username" />	
+			<form:errors path="userAccount.username" cssClass="error" />
+		</div>
 		
-	<display:column title="${linkHeader}"> 
-	<a href="${row.link}"><jstl:out value="${row.link}" /></a>
-	</display:column>
-	<security:authorize access="isAuthenticated()">
-		<display:column>
-			<a href="socialProfile/edit.do?socialProfileId=${row.id}"> <spring:message
-					code="referee.socialProfile.edit" />
-			</a>
-		</display:column>
-	</security:authorize>
-
-
-</display:table>
-
-<!-- Create socialProfile link -->
-
-<security:authorize access="isAuthenticated()">
+		<div>
+			<form:label path="userAccount.password">
+				<spring:message code="referee.useraccount.password" />
+			</form:label>	
+			<form:password path="userAccount.password" />	
+			<form:errors path="userAccount.password" cssClass="error" />
+		</div>
+	</fieldset>
+	
 	<div>
-		<a href="socialProfile/create.do"> <spring:message
-				code="referee.socialProfile.create" />
-		</a>
+		<form:label path="name">
+			<spring:message code="referee.name" />
+		</form:label>	
+		<form:input path="name" />	
+		<form:errors path="name" cssClass="error" />
 	</div>
-</security:authorize>
+	
+	<div>
+		<form:label path="middleName">
+			<spring:message code="referee.middleName" />
+		</form:label>	
+		<form:input path="middleName" />	
+		<form:errors path="middleName" cssClass="error" />
+	</div>
 
+	<div>
+		<form:label path="surname">
+			<spring:message code="referee.surname" />
+		</form:label>	
+		<form:input path="surname" />	
+		<form:errors path="surname" cssClass="error" />
+	</div>
 
+	<div>
+		<form:label path="photo">
+			<spring:message code="referee.photo" />
+		</form:label>	
+		<form:input path="photo" />	
+		<form:errors path="photo" cssClass="error" />
+	</div>
 
+	<div>
+		<form:label path="email">
+			<spring:message code="referee.email" />
+		</form:label>	
+		<form:input path="email" />	
+		<form:errors path="email" cssClass="error" />
+	</div>
 
+	<div>
+		<form:label path="address">
+			<spring:message code="referee.address" />
+		</form:label>	
+		<form:input path="address" />	
+		<form:errors path="address" cssClass="error" />
+	</div>
+	
+	<div>
+		<form:label path="phone">
+			<spring:message code="referee.phone" />
+		</form:label>	
+		<form:input path="phone" />	
+		<form:errors path="phone" cssClass="error" />
+	</div>
 
+<jstl:if test="${isPrincipalAuthorizedEdit}">	
+	<button type="submit" name="save" class="btn btn-primary">
+		<spring:message code="referee.save" />
+	</button>
+</jstl:if>
+	
+</form:form>
 
-
-
-
-
+<jstl:choose>
+	<jstl:when test="${referee.id > 0}">
+		<button type="button" onclick="javascript: relativeRedir('referee/profile.do?refereeId=${referee.id}')" >
+			<spring:message code="referee.cancel" />
+		</button>
+	</jstl:when>
+	<jstl:when test="${referee.id == 0}">
+		<button type="button" onclick="javascript: relativeRedir('')" >
+			<spring:message code="referee.cancel" />
+		</button>
+	</jstl:when>
+</jstl:choose>

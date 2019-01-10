@@ -35,11 +35,7 @@ public class EducationRecordServiceTest extends AbstractTest {
 
 		Assert.notNull(educationRecord);
 		Assert.isNull(educationRecord.getDiplomaTitle());
-		Assert.isNull(educationRecord.getStartDate());
-		Assert.isNull(educationRecord.getEndDate());
 		Assert.isNull(educationRecord.getInstitution());
-		Assert.isNull(educationRecord.getAttachmentLink());
-		Assert.isNull(educationRecord.getComment());
 
 	}
 
@@ -61,11 +57,7 @@ public class EducationRecordServiceTest extends AbstractTest {
 		comment = "comment1";
 
 		educationRecord.setDiplomaTitle(diplomaTitle);
-		educationRecord.setStartDate(startDate);
-		educationRecord.setEndDate(endDate);
 		educationRecord.setInstitution(institution);
-		educationRecord.setAttachmentLink(attachmentLink);
-		educationRecord.setComment(comment);
 
 		saved = this.educationRecordService.save(educationRecord);
 

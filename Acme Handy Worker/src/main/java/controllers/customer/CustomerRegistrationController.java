@@ -1,93 +1,118 @@
+/*
+ * CustomerController.java
+ * 
+ * Copyright (C) 2018 Universidad de Sevilla
+ * 
+ * The use of this project is hereby constrained to the conditions of the
+ * TDG Licence, a copy of which you may download from
+ * http://www.tdg-seville.info/License.html
+ */
+
 package controllers.customer;
 
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.encoding.Md5PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
 
+import security.UserAccount;
+import services.ActorService;
 import services.CustomerService;
+import services.SocialProfileService;
+import services.UserAccountService;
+import controllers.AbstractController;
 import domain.Customer;
 
 @Controller
-@RequestMapping("/customer/registration")
-public class CustomerRegistrationController {
+@RequestMapping("/none/customer")
+public class CustomerRegistrationController extends AbstractController {
 
-	// Services
-
-	@Autowired
-	private CustomerService customerService;
-
-	// Constructors
+	// Constructors 
 
 	public CustomerRegistrationController() {
 		super();
 	}
 
-	// Creation
 
-	@RequestMapping(value = "/registration", method = RequestMethod.GET)
+	//Services
+
+	@Autowired
+	CustomerService			customerService;
+
+	@Autowired
+	ActorService			actorService;
+
+	@Autowired
+	SocialProfileService	socialProfileService;
+
+	@Autowired
+	UserAccountService		userAccountService;
+
+
+	//Create
+	// Creation
+	@RequestMapping(value = "/create", method = RequestMethod.GET)
 	public ModelAndView create() {
-		ModelAndView res;
-		Customer customer;
+		ModelAndView result;
+		final Customer customer;
 
 		customer = this.customerService.create();
-		res = this.createEditModelAndView(customer);
-
-		return res;
+		result = new ModelAndView("none/customer/create");
+		result.addObject("customer", customer);
+		return result;
 	}
 
-	// Edit
-	
-	@RequestMapping(value = "/registration", method = RequestMethod.POST, params = "save")
-	public ModelAndView save(@Valid Customer customer, BindingResult binding) {
-		ModelAndView res;
+	@RequestMapping(value = "/create", method = RequestMethod.POST, params = "save")
+	public ModelAndView save(@Valid final Customer customer, final BindingResult binding) {
+		ModelAndView result;
 
+		final Md5PasswordEncoder encoder = new Md5PasswordEncoder();
+		customer.getUserAccount().setPassword(encoder.encodePassword(customer.getUserAccount().getPassword(), null));
 		if (binding.hasErrors()) {
-			res = this.createEditModelAndView(customer);
-		} else {
+			result = this.createEditModelAndView(customer);
+			result.addObject("customer", customer);
+			result.addObject("message", "customer.commit.error");
+		} else
 			try {
-				
 				this.customerService.save(customer);
-				res = new ModelAndView("redirect:/");
+				result = new ModelAndView("redirect:/customer/display.do");
+			} catch (final Throwable ops) {
 
-			} catch (Throwable oops) {
-				String errorMessage = "application.commit.error";
-
-				if (oops.getMessage().contains("message.error")) {
-					errorMessage = oops.getMessage();
-				}
-				res = this.createEditModelAndView(customer,
-						errorMessage);
-
+				result = new ModelAndView("none/customer/create");
+				result.addObject("customer", customer);
+				result.addObject("message", "customer.commit.error");
 			}
-		}
-		return res;
+
+		return result;
 
 	}
 
-	// Ancillary methods
+	//
 
-	protected ModelAndView createEditModelAndView(Customer customer) {
-		ModelAndView res;
+	protected ModelAndView createEditModelAndView(final Customer customer) {
+		ModelAndView result;
 
-		res = createEditModelAndView(customer, null);
+		result = this.createEditModelAndView(customer, null);
 
-		return res;
+		return result;
 	}
 
-	protected ModelAndView createEditModelAndView(Customer customer,
-			String message) {
-		ModelAndView res;
+	protected ModelAndView createEditModelAndView(final Customer customer, final String messageCode) {
+		final ModelAndView result;
+		UserAccount userAccount = new UserAccount();
+		userAccount = customer.getUserAccount();
 
-		res = new ModelAndView("customer/registration");
-		res.addObject("customer", customer);
-		res.addObject("message", message);
+		result = new ModelAndView("none/customer/create");
+		result.addObject("customer", customer);
+		result.addObject("userAccount", userAccount);
+		result.addObject("message", messageCode);
 
-		return res;
+		return result;
 	}
 
 }

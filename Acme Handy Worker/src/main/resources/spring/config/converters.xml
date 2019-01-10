@@ -22,6 +22,109 @@
 			Add your own converters using entries of the following form: 
 			<bean class="converters.Class1ToClass2" /> 
 		-->
+		
+		<bean class = "converters.ActorToStringConverter"></bean>
+		<bean class = "converters.StringToActorConverter"></bean>
+		
+		<bean class = "converters.FixupTaskToStringConverter"></bean>
+		<bean class = "converters.StringToFixupTaskConverter"></bean>
+		
+		<bean class = "converters.HandyWorkerToStringConverter"></bean>
+		<bean class = "converters.StringToHandyWorkerConverter"></bean>
+		
+		<bean class = "converters.NoteToStringConverter"></bean>
+		<bean class = "converters.StringToNoteConverter"></bean>
+		
+		<bean class = "converters.WorkplanToStringConverter"></bean>
+		<bean class = "converters.StringToWorkplanConverter"></bean>
+		
+		<bean class = "converters.MiscellaneousRecordToStringConverter"></bean>
+		<bean class = "converters.StringToMiscellaneousRecordConverter"></bean>
+		
+		<bean class = "converters.PersonalRecordToStringConverter"></bean>
+		<bean class = "converters.StringToPersonalRecordConverter"></bean>
+		
+		<bean class = "converters.TutorialToStringConverter"></bean>
+		<bean class = "converters.StringToTutorialConverter"></bean>
+		
+		<bean class = "converters.FolderToStringConverter"></bean>
+		<bean class = "converters.StringToFolderConverter"></bean>
+	
+		<bean class = "converters.MessageToStringConverter"></bean>
+		<bean class = "converters.StringToMessageConverter"></bean>
+		
+		<bean class = "converters.RefereeToStringConverter"></bean>
+		<bean class = "converters.StringToRefereeConverter"></bean>
+		
+		<bean class = "converters.ReportToStringConverter"></bean>
+		<bean class = "converters.StringToReportConverter"></bean>
+		
+		<bean class = "converters.SectionToStringConverter"></bean>
+		<bean class = "converters.StringToSectionConverter"></bean>
+		
+		<bean class = "converters.SettingsToStringConverter"></bean>
+		<bean class = "converters.StringToSettingsConverter"></bean>
+		
+		<bean class = "converters.SocialProfileToStringConverter"></bean>
+		<bean class = "converters.StringToSocialProfileConverter"></bean>
+		
+		<bean class = "converters.CategoryToStringConverter"></bean>
+		<bean class = "converters.StringToCategoryConverter"></bean>
+		
+		<bean class = "converters.UrlToStringConverter"></bean>
+		<bean class = "converters.StringToUrlConverter"></bean>
+		
+		<bean class = "converters.AuthorityToStringConverter"></bean>
+		<bean class = "converters.StringToAuthorityConverter"></bean>
+		
+		<bean class = "converters.ComplaintToStringConverter"></bean>
+		<bean class = "converters.StringToComplaintConverter"></bean>
+		
+		<bean class = "converters.AdministratorToStringConverter"></bean>
+		<bean class = "converters.StringToAdministratorConverter"></bean>
+		
+		<bean class = "converters.ApplicationToStringConverter"></bean>
+		<bean class = "converters.StringToApplicationConverter"></bean>
+		
+		<bean class = "converters.EducationRecordToStringConverter"></bean>
+		<bean class = "converters.StringToEducationRecordConverter"></bean>
+		
+		<bean class = "converters.CurriculumToStringConverter"></bean>
+		<bean class = "converters.StringToCurriculumConverter"></bean>
+		
+		<bean class = "converters.PhaseToStringConverter"></bean>
+		<bean class = "converters.StringToPhaseConverter"></bean>
+		
+		<bean class = "converters.SponsorToStringConverter"></bean>
+		<bean class = "converters.StringToSponsorConverter"></bean>
+		
+		<bean class = "converters.SponsorshipToStringConverter"></bean>
+		<bean class = "converters.StringToSponsorshipConverter"></bean>
+		
+		<bean class = "converters.WarrantyToStringConverter"></bean>
+		<bean class = "converters.StringToWarrantyConverter"></bean>
+	
+		<bean class = "converters.CustomerToStringConverter"></bean>
+		<bean class = "converters.StringToCustomerConverter"></bean>
+		
+		<bean class = "converters.EndorsableToStringConverter"></bean>
+		<bean class = "converters.StringToEndorsableConverter"></bean>
+		
+		<bean class = "converters.EndorsementToStringConverter"></bean>
+		<bean class = "converters.StringToEndorsementConverter"></bean>
+		
+		<bean class = "converters.EndorserRecordToStringConverter"></bean>
+		<bean class = "converters.StringToEndorserRecordConverter"></bean>
+		
+		<bean class = "converters.FinderToStringConverter"></bean>
+		<bean class = "converters.StringToFinderConverter"></bean>
+		
+		<bean class = "converters.PhaseToStringConverter"></bean>
+		<bean class = "converters.StringToPhaseConverter"></bean>
+		
+		<bean class = "converters.CreditCardToStringConverter"></bean>
+		<bean class = "converters.StringToCreditCardConverter"></bean>
+		
 	</util:list>
 	
 </beans>

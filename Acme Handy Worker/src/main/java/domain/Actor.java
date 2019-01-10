@@ -1,13 +1,12 @@
 
 package domain;
 
-import java.util.Collection;
-
 import javax.persistence.Access;
 import javax.persistence.AccessType;
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
-import javax.persistence.OneToMany;
+import javax.persistence.Inheritance;
+import javax.persistence.InheritanceType;
 import javax.persistence.OneToOne;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -20,27 +19,45 @@ import security.UserAccount;
 
 @Entity
 @Access(AccessType.PROPERTY)
-public class Actor extends DomainEntity {
+@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
+public abstract class Actor extends DomainEntity {
 
-	// Attributes 
-
-	private String	name;
-	private String	middleName;
-	private String	surname;
-	private String	email;
-	private String	phone;
-	private String	address;
-	private String	Photo;
-	private boolean	suspicious;
-
-
-	// Constructors 
+	// Constructors
 
 	public Actor() {
 		super();
 	}
 
+
+	// Attributes 
+
+	private String		name;
+	private String		middleName;
+	private String		surname;
+	private String		photo;
+	private String		email;
+
+	private String		phone;
+	private String		address;		;
+	private Boolean		suspicious;
+
+	// Relationships
+
+	private UserAccount	userAccount;
+
+
+	@Valid
+	@OneToOne(cascade = CascadeType.ALL, optional = false)
+	public UserAccount getUserAccount() {
+		return this.userAccount;
+	}
+
+	public void setUserAccount(final UserAccount userAccount) {
+		this.userAccount = userAccount;
+	}
+
 	@NotBlank
+	@NotNull
 	public String getName() {
 		return this.name;
 	}
@@ -58,6 +75,7 @@ public class Actor extends DomainEntity {
 	}
 
 	@NotBlank
+	@NotNull
 	public String getSurname() {
 		return this.surname;
 	}
@@ -66,7 +84,18 @@ public class Actor extends DomainEntity {
 		this.surname = surname;
 	}
 
+	@URL
+	public String getPhoto() {
+		return this.photo;
+	}
+
+	public void setPhoto(final String photo) {
+		this.photo = photo;
+	}
+
+	@NotBlank
 	@Email
+	@NotNull
 	public String getEmail() {
 		return this.email;
 	}
@@ -75,7 +104,6 @@ public class Actor extends DomainEntity {
 		this.email = email;
 	}
 
-	@NotBlank
 	public String getPhone() {
 		return this.phone;
 	}
@@ -84,7 +112,6 @@ public class Actor extends DomainEntity {
 		this.phone = phone;
 	}
 
-	@NotBlank
 	public String getAddress() {
 		return this.address;
 	}
@@ -92,61 +119,23 @@ public class Actor extends DomainEntity {
 	public void setAddress(final String address) {
 		this.address = address;
 	}
-
-	@URL
-	public String getPhoto() {
-		return this.Photo;
-	}
-
-	public void setPhoto(final String photo) {
-		this.Photo = photo;
-	}
-
-	public boolean getSuspicious() {
+	/*
+	 * @NotNull
+	 * public Boolean getBanned() {
+	 * return this.banned;
+	 * }
+	 * 
+	 * public void setBanned(final Boolean banned) {
+	 * this.banned = banned;
+	 * }
+	 */
+	@NotNull
+	public Boolean getSuspicious() {
 		return this.suspicious;
 	}
 
-	public void setSuspicious(final boolean suspicious) {
+	public void setSuspicious(final Boolean suspicious) {
 		this.suspicious = suspicious;
-	}
-
-
-	// Relationships
-
-	private UserAccount					userAccount;
-	private Collection<Box>				boxes;
-	private Collection<SocialProfile>	socialProfiles;
-
-
-	@NotNull
-	@Valid
-	@OneToOne(cascade = CascadeType.ALL, optional = false)
-	public UserAccount getUserAccount() {
-		return this.userAccount;
-	}
-
-	public void setUserAccount(final UserAccount userAccount) {
-		this.userAccount = userAccount;
-	}
-
-	@Valid
-	@OneToMany(mappedBy = "actor")
-	public Collection<Box> getBoxes() {
-		return this.boxes;
-	}
-
-	public void setBoxes(final Collection<Box> boxes) {
-		this.boxes = boxes;
-	}
-
-	@Valid
-	@OneToMany(mappedBy = "actor")
-	public Collection<SocialProfile> getSocialProfiles() {
-		return this.socialProfiles;
-	}
-
-	public void setSocialProfiles(final Collection<SocialProfile> socialProfiles) {
-		this.socialProfiles = socialProfiles;
 	}
 
 }

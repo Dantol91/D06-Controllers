@@ -3,131 +3,88 @@ package services;
 
 import java.util.Collection;
 
+import javax.transaction.Transactional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
 import repositories.ProfessionalRecordRepository;
-import domain.HandyWorker;
+import security.Authority;
+import domain.Curriculum;
 import domain.ProfessionalRecord;
 
 @Service
 @Transactional
 public class ProfessionalRecordService {
 
-	// MANAGED REPOSITORY 
-
+	// Repository
+	
 	@Autowired
-	private ProfessionalRecordRepository	professionalRecordRepository;
+	private ProfessionalRecordRepository	repository;
 
-	// SUPPORTING SERVICES 
-
+	// Services
+	
 	@Autowired
-	private ActorService					actorService;
+	private CurriculumService				curriculumService;
 	@Autowired
-	private HandyWorkerService				handyWorkerService;
-	@Autowired
-	private AdministratorService			administratorService;
+	private ServiceUtils					serviceUtils;
 
+	// CRUD methods
 
-	// CONSTRUCTOR 
-
-	public ProfessionalRecordService() {
-		super();
+	public ProfessionalRecord findOne(final Integer id) {
+		this.serviceUtils.checkId(id);
+		return this.repository.findOne(id);
 	}
 
-	// SIMPLE CRUD METHODS 
-
-	public ProfessionalRecord create() {
-
-		ProfessionalRecord pr;
-
-		pr = new ProfessionalRecord();
-
-		return pr;
-
+	public Collection<ProfessionalRecord> findAll(final Collection<Integer> ids) {
+		this.serviceUtils.checkIds(ids);
+		return this.repository.findAll(ids);
 	}
 
 	public Collection<ProfessionalRecord> findAll() {
-		Collection<ProfessionalRecord> result;
-
-		result = this.professionalRecordRepository.findAll();
-		Assert.notNull(result);
-
-		return result;
+		return this.repository.findAll();
+	}
+	
+	public Collection<ProfessionalRecord> findAll(final Curriculum dependency) {
+		this.serviceUtils.checkId(dependency);
+		Assert.notNull(this.curriculumService.findOne(dependency.getId()));
+		return this.repository.findByCurriculumId(dependency.getId());
 	}
 
-	public ProfessionalRecord findOne(final int EducationRecordId) {
-		ProfessionalRecord result;
-
-		result = this.professionalRecordRepository.findOne(EducationRecordId);
-
-		return result;
+	public ProfessionalRecord create(final Curriculum dependency) {
+		final ProfessionalRecord res = new ProfessionalRecord();
+		res.setCurriculum(dependency);
+		return res;
 	}
 
-	public ProfessionalRecord findOneToEdit(final int EducationRecordId) {
-		ProfessionalRecord result;
-
-		result = this.professionalRecordRepository.findOne(EducationRecordId);
-
-		this.checkPrincipal(result);
-
-		return result;
-	}
-
-	public ProfessionalRecord save(final ProfessionalRecord pr) {
-		Assert.notNull(pr);
-		if (pr.getEndDate() != null)
-			Assert.isTrue(pr.getStartDate().before(pr.getEndDate()), "message.error.startDateEndDate");
-
-		final HandyWorker h;
-		Collection<ProfessionalRecord> c;
-		ProfessionalRecord result;
-
-		result = this.professionalRecordRepository.save(pr);
-		h = (HandyWorker) this.actorService.findByPrincipal();
-
-		if (pr.getId() == 0) {
-			c = h.getCurriculum().getProfessionalRecords();
-			c.add(pr);
-			h.getCurriculum().setProfessionalRecords(c);
-			this.handyWorkerService.save(h);
+	public ProfessionalRecord save(final ProfessionalRecord object) {
+		final ProfessionalRecord professionalRecord = (ProfessionalRecord) this.serviceUtils.checkObjectSave(object);
+		if (professionalRecord.getId() > 0) {
+			professionalRecord.setAttachment(object.getAttachment());
+			professionalRecord.setComments(object.getComments());
+			professionalRecord.setCompany(object.getCompany());
+			professionalRecord.setEnd(object.getEnd());
+			professionalRecord.setRole(object.getRole());
+			professionalRecord.setStart(object.getStart());
 		}
-
-		// Comprobamos si es spam
-		this.administratorService.checkIsSpam(pr.getAttachmentLink());
-		this.administratorService.checkIsSpam(pr.getComment());
-		this.administratorService.checkIsSpam(pr.getCompanyName());
-		this.administratorService.checkIsSpam(pr.getRole());
-
-		return result;
+		this.serviceUtils.checkActor(professionalRecord.getCurriculum().getHandyWorker());
+		this.serviceUtils.checkAuthority(Authority.HANDYWORKER);
+		final ProfessionalRecord res = this.repository.save(professionalRecord);
+		return res;
 	}
 
-	public void delete(final ProfessionalRecord professionalRecord) {
-		Assert.notNull(professionalRecord);
-		Assert.isTrue(professionalRecord.getId() != 0);
-
-		HandyWorker h;
-		Collection<ProfessionalRecord> c;
-
-		h = (HandyWorker) this.actorService.findByPrincipal();
-
-		c = h.getCurriculum().getProfessionalRecords();
-		c.remove(professionalRecord);
-		h.getCurriculum().setProfessionalRecords(c);
-
-		this.professionalRecordRepository.delete(professionalRecord);
+	public void delete(final ProfessionalRecord object) {
+		final ProfessionalRecord professionalRecord = (ProfessionalRecord) this.serviceUtils.checkObject(object);
+		this.serviceUtils.checkActor(professionalRecord.getCurriculum().getHandyWorker());
+		this.serviceUtils.checkAuthority(Authority.HANDYWORKER);
+		this.repository.delete(professionalRecord);
 	}
 
-	// Other business methods
-
-	public void checkPrincipal(final ProfessionalRecord mr) {
-		HandyWorker h;
-
-		h = (HandyWorker) this.actorService.findByPrincipal();
-
-		Assert.isTrue(h.getCurriculum().getProfessionalRecords().contains(mr));
+	// Other methods
+	
+	public void flush() {
+		this.repository.flush();
 	}
 
 }

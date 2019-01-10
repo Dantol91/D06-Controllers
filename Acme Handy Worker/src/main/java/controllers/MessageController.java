@@ -15,185 +15,139 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
 import services.ActorService;
-import services.BoxService;
+import services.FolderService;
 import services.MessageService;
 import domain.Actor;
-import domain.Box;
+import domain.Administrator;
+import domain.Folder;
 import domain.Message;
 
 @Controller
-@RequestMapping("/message")
+@RequestMapping("message/actor")
 public class MessageController extends AbstractController {
 
 	// Services
 
 	@Autowired
 	private MessageService	messageService;
-
+	@Autowired
+	private FolderService	folderService;
 	@Autowired
 	private ActorService	actorService;
 
-	@Autowired
-	private BoxService		boxService;
 
+	// List
 
-	//Constructor
-
-	public MessageController() {
-		super();
+	@RequestMapping("list")
+	public ModelAndView list(@RequestParam(required = true) final Integer folderId) {
+		final ModelAndView res = new ModelAndView("message/list");
+		final Folder folder = this.folderService.findOne(folderId);
+		final Collection<Message> messages = this.messageService.findByFolder(folder);
+		res.addObject("messages", messages);
+		System.out.println(messages);
+		res.addObject("requestURI", "message/actor/list.do");
+		this.isPrincipalAuthorizedEdit(res, folder);
+		return res;
 	}
 
-	@RequestMapping(value = "/create", method = RequestMethod.GET)
-	public ModelAndView create() {
-		ModelAndView result;
-		Message m;
-		m = this.messageService.create();
-		result = this.createEditModelAndView(m);
-		return result;
+	// Create
+
+	@SuppressWarnings("unused")
+	@RequestMapping("create")
+	private ModelAndView create(@RequestParam(required = false) final Boolean isBroadcast) {
+		final Actor principal = this.actorService.findPrincipal();
+		final Folder folder = this.folderService.findFolderByActorAndName(principal, "inBox");
+		final Message message = this.messageService.create(folder);
+		Boolean broadcast = false;
+		if (isBroadcast != null)
+			broadcast = isBroadcast;
+		final ModelAndView res = this.createEditModelAndView(message, broadcast);
+		return res;
 	}
+	// Edit
 
-	@RequestMapping(value = "/edit", method = RequestMethod.POST, params = "save")
-	public ModelAndView save(@Valid final domain.Message m, final BindingResult binding) {
-		ModelAndView result;
-		if (binding.hasErrors()) {
-			int masDeUnError = 0;
-			String errorMessage = "ms.commit.error";
-			if (m.getSubject() == null || m.getSubject() == "" || m.getBody() == null || m.getBody() == "") {
-				errorMessage = "ms.be";
-				masDeUnError++;
-			}
-			if (m.getPriority().equals("0")) {
-				errorMessage = "ms.beP";
-				masDeUnError++;
-			}
-			if (m.getRecipient() == null) {
-				errorMessage = "ms.beR";
-				masDeUnError++;
-			}
-			if (masDeUnError >= 2)
-				errorMessage = "ms.beVacio";
-
-			result = this.createEditModelAndView(m, errorMessage);
-
-		} else
+	@SuppressWarnings("unused")
+	@RequestMapping("edit")
+	private ModelAndView edit(@RequestParam(required = true) final Integer messageId) {
+		final Message message = this.messageService.findOne(messageId);
+		Assert.notNull(message);
+		final ModelAndView res = this.createEditModelAndView(message, false);
+		return res;
+	}
+	@SuppressWarnings("unused")
+	@RequestMapping(value = "edit", method = RequestMethod.POST, params = "save")
+	private ModelAndView save(@Valid final Message message, final BindingResult binding) {
+		ModelAndView res = null;
+		if (binding.hasErrors())
+			res = this.createEditModelAndView(message, false);
+		else
 			try {
-
-				this.messageService.save(m);
-				result = new ModelAndView("redirect:/");
-
-			} catch (final Throwable oops) {
-				String errorMessage = "ms.commit.error";
-
-				if (oops.getMessage().contains("message.error"))
-					errorMessage = oops.getMessage();
-
-				result = this.createEditModelAndView(m, errorMessage);
-
+				this.messageService.save(message);
+				res = new ModelAndView("redirect:list.do?folderId=" + String.valueOf(message.getFolder().getId()));
+			} catch (final Throwable t) {
+				res = this.createEditModelAndView(message, "cannot.commit.error", false);
 			}
-
-		return result;
+		return res;
 	}
 
-	@RequestMapping(value = "/saveMove", method = RequestMethod.GET)
-	public ModelAndView saveMove(@RequestParam(required = true) final int messageId, @RequestParam(required = true) final int boxId) {
-		ModelAndView result;
-		final Message m = this.messageService.findOne(messageId);
-		Assert.notNull(m);
-		final Box choosedBox = this.boxService.findOne(boxId);
-		Assert.notNull(choosedBox);
+	@SuppressWarnings("unused")
+	@RequestMapping(value = "edit", method = RequestMethod.POST, params = "broadcast")
+	private ModelAndView broadcast(@Valid final Message message, final BindingResult binding) {
+		ModelAndView res = null;
+		if (binding.hasErrors())
+			res = this.createEditModelAndView(message, true);
+		else
+			try {
+				this.messageService.broadcast(message);
+				res = new ModelAndView("redirect:list.do?folderId=" + String.valueOf(message.getFolder().getId()));
+			} catch (final Throwable t) {
+				res = this.createEditModelAndView(message, "cannot.commit.error", true);
+			}
+		return res;
+	}
 
+	// Delete
+
+	@SuppressWarnings("unused")
+	@RequestMapping(value = "edit", method = RequestMethod.POST, params = "delete")
+	private ModelAndView delete(final Message message, final BindingResult binding) {
+		ModelAndView res = null;
 		try {
-
-			//		messageService.saveToMove(m,choosedBox);
-			result = new ModelAndView("redirect:/BoxService/display.do?boxId=" + choosedBox.getId());
-
-		} catch (final Throwable oops) {
-			final Actor principal = this.actorService.findByPrincipal();
-			final Collection<Box> boxes = principal.getBoxes();
-			result = new ModelAndView("message/move");
-			result.addObject("m", m);
-			result.addObject("message", "ms.commit.error");
-			result.addObject("boxes", boxes);
-
+			this.messageService.delete(message);
+			res = new ModelAndView("redirect:/folder/actor/list.do");
+		} catch (final Throwable t) {
+			res = this.createEditModelAndView(message, "cannot.commit.error", false);
 		}
-
-		return result;
+		return res;
 	}
 
-	@RequestMapping(value = "/delete", method = RequestMethod.GET)
-	public ModelAndView delete(@RequestParam final int messageId) {
-		ModelAndView result;
-		Message m;
+	// Ancillary methods
 
-		m = this.messageService.findOne(messageId);
-		final Box box = this.boxService.getBoxFromMessageId(m.getId());
-		try {
-			this.messageService.delete(m);
-			result = new ModelAndView("redirect:/box/display.do?boxId=" + box.getId());
-		} catch (final Throwable oops) {
-			result = new ModelAndView("redirect:/message/display.do?messageId=" + m.getId());
-
-		}
-
-		return result;
-
+	private ModelAndView createEditModelAndView(final Message messageObject, final Boolean isBroadcast) {
+		return this.createEditModelAndView(messageObject, null, isBroadcast);
 	}
 
-	@RequestMapping(value = "/move", method = RequestMethod.GET)
-	public ModelAndView createMove(@RequestParam final int messageId) {
-		ModelAndView result;
-		Message m;
-		Box b;
-
-		b = this.boxService.getBoxFromMessageId(messageId);
-		m = this.messageService.findOne(messageId);
-		final Actor principal = this.actorService.findByPrincipal();
-		final Collection<Box> boxes = principal.getBoxes();
-		result = new ModelAndView("message/move");
-		result.addObject("m", m);
-		//	result.addObject("box", f);
-		result.addObject("message", null);
-		result.addObject("boxes", boxes);
-
-		return result;
-
+	private ModelAndView createEditModelAndView(final Message messageObject, final String message, Boolean isBroadcast) {
+		final ModelAndView res = new ModelAndView("message/edit");
+		final Actor principal = this.actorService.findPrincipal();
+		res.addObject("messageObject", messageObject);
+		res.addObject("message", message);
+		res.addObject("actors", this.actorService.findAll());
+		res.addObject("folders", this.folderService.findAllByActor(principal));
+		if (!(this.actorService.findPrincipal() instanceof Administrator))
+			isBroadcast = false;
+		res.addObject("isBroadcast", isBroadcast);
+		this.isPrincipalAuthorizedEdit(res, messageObject.getFolder());
+		return res;
 	}
-
-	@RequestMapping(value = "/display", method = RequestMethod.GET)
-	public ModelAndView display(@RequestParam final int messageId) {
-
-		ModelAndView result;
-		Message m;
-		final Box box;
-
-		m = this.messageService.findOne(messageId);
-		//		box = boxService.geBoxFromMessageId(messageId);
-
-		result = new ModelAndView("message/display");
-		result.addObject("m", m);
-		//		result.addObject("box", box);
-
-		return result;
-
-	}
-
-	protected ModelAndView createEditModelAndView(final Message m) {
-		ModelAndView result;
-
-		result = this.createEditModelAndView(m, null);
-
-		return result;
-	}
-
-	protected ModelAndView createEditModelAndView(final Message m, final String messageCode) {
-		ModelAndView result;
-		final Collection<Actor> actors = this.actorService.findAll();
-		result = new ModelAndView("message/create");
-		result.addObject("m", m);
-		result.addObject("message", messageCode);
-		result.addObject("actors", actors);
-
-		return result;
+	private void isPrincipalAuthorizedEdit(final ModelAndView modelAndView, final Folder folder) {
+		Boolean res = false;
+		final Actor principal = this.actorService.findPrincipal();
+		if (folder == null)
+			res = true;
+		else if (folder.getActor().equals(principal))
+			res = true;
+		modelAndView.addObject("isPrincipalAuthorizedEdit", res);
 	}
 
 }

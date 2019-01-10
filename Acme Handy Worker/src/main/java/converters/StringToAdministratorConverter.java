@@ -1,34 +1,39 @@
+
 package converters;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import repositories.AdministratorRepository;
 import domain.Administrator;
 
 @Component
 @Transactional
-public class StringToAdministratorConverter implements
-		Converter<String, Administrator> {
+public class StringToAdministratorConverter implements Converter<String, Administrator> {
 
 	@Autowired
-	AdministratorRepository administratorRepository;
+	private AdministratorRepository	repository;
+
 
 	@Override
-	public Administrator convert(final String text) {
-		Administrator result;
+	public Administrator convert(final String s) {
+		Administrator res;
 		int id;
 
 		try {
-			id = Integer.valueOf(text);
-			result = this.administratorRepository.findOne(id);
-		} catch (final Throwable oops) {
-			throw new IllegalArgumentException(oops);
+			if (StringUtils.isEmpty(s))
+				res = null;
+			else {
+				id = Integer.valueOf(s);
+				res = this.repository.findOne(id);
+			}
+		} catch (final Throwable t) {
+			throw new IllegalArgumentException(t);
 		}
-
-		return result;
+		return res;
 	}
 
 }

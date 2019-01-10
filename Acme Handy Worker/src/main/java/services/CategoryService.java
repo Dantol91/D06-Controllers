@@ -1,167 +1,137 @@
 
 package services;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
+
+import javax.transaction.Transactional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
 import repositories.CategoryRepository;
+import security.Authority;
 import domain.Category;
-import domain.FixUpTask;
+import domain.FixupTask;
 
 @Service
 @Transactional
 public class CategoryService {
 
-	// Managed repository
 	@Autowired
 	private CategoryRepository	categoryRepository;
 
-	// Supporting services
-
 	@Autowired
-	private FixUpTaskService	fixUpTaskService;
+	private FixupTaskService	fixUpTaskService;
+	@Autowired
+	private ServiceUtils		serviceUtils;
 
 
-	// Constructor
+	//Constructor
+
 	public CategoryService() {
 		super();
 	}
-
-	// Simple CRUD methods
+	// CRUD methods
 
 	public Category create() {
-		Category c;
-		Collection<Category> childCategories;
+		final Category c = new Category();
+		return c;
+	}
 
-		c = new Category();
-		childCategories = new ArrayList<>();
-		c.setChildCategories(childCategories);
+	public Category findOne(final int categoryId) {
+		return this.categoryRepository.findOne(categoryId);
+	}
+
+	public Collection<Category> findAll() {
+		Collection<Category> c;
+		c = this.categoryRepository.findAll();
+		Assert.notNull(c);
 
 		return c;
 	}
 
-	public Collection<Category> findAll() {
-		final Collection<Category> result = this.categoryRepository.findAll();
-		Assert.notNull(result);
-		return result;
-
-	}
-
-	public Category findOne(final int categoryId) {
-		final Category result = this.categoryRepository.findOne(categoryId);
-		return result;
-	}
-
 	public Category save(final Category category) {
 		Assert.notNull(category);
+		System.out.println("Entra en el save");
+		final Category padre = category.getParentCategory();
 
-		// Se comprueba que no hay dos categorías con la misma parentCategory y
-		// mismo nombre
-		if (category.getId() != 0) {
+		if (!category.getNameEnglish().equals("CATEGORY")) {
+			System.out.println("Entra en el if");
 
-			Collection<Category> categories;
-
-			if (category.getParentCategory() != null) {
-
-				//Comprobamos que una categoría no es padre/hija de sí misma
-				Assert.isTrue(!category.getParentCategory().equals(category), "message.error.parentCategory");
-
-				categories = this.categoryRepository.getCategoriesbByParentCategory(category.getParentCategory().getId());
-			} else
-				categories = this.categoryRepository.getParentCategories();
-			for (final Category c : categories)
-				if (c.getId() != category.getId())
-					Assert.isTrue(!c.getName().equals(category.getName()), "message.error.childCategories");
-
+			return this.categoryRepository.save(category);
+		} else {
+			System.out.println("Entra en el else");
+			throw new IllegalArgumentException("Incompatibilidad de recursividad en el guardado");
 		}
+	}
+	public Boolean tieneHijas(final Category c) {
+		final Boolean res = true;
+		if (this.findByParent(c).isEmpty())
+			return false;
+		return res;
 
-		//Se actualiza el padre
-		final Collection<Category> aux = category.getParentCategory().getChildCategories();
-		aux.add(category);
-		category.getParentCategory().setChildCategories(aux);
-
-		//Si estamos poniendo al padre como hijo de uno de sus hijos,
-		// lo ponemos en el nivel en el que estaba el padre
-
-		final Category parentAux = this.getParent(category.getId());
-		category.getParentCategory().setParentCategory(parentAux);
-
-		final Category parentAuxsaved = this.categoryRepository.save(category.getParentCategory());
-		category.setParentCategory(parentAuxsaved);
-
-		//Se actualizan las categorias hijas
-
-		final Collection<Category> childAux = new ArrayList<>();
-		final Category childSaved;
-
-		for (final Category c : category.getChildCategories())
-			c.setParentCategory(category);
-
-		category.setChildCategories(childAux);
-
-		final Category result = this.categoryRepository.save(category);
-		return result;
 	}
 
-	public void delete(final Category category) {
-		Assert.notNull(category);
-		Assert.isTrue(category.getId() != 0);
-		final Collection<FixUpTask> fixUpTasks;
-		Collection<Category> children;
-
-		children = category.getChildCategories();
-
-		if (!children.isEmpty()) {
-			final Iterator<Category> iter = children.iterator();
-			while (iter.hasNext()) {
-
-				final Category c = iter.next();
-				this.delete(c);
-				iter.remove();
-			}
-
-		}
-
-		fixUpTasks = this.fixUpTaskService.getFixUpTasksByCategory(category.getId());
-
-		// Al borrar una categoría se asigna a las fixUpTask que tenían la categoría padre
-		// que en el peor de los casos será CATEGORY (equivalente a que la fixUpTask no tiene categoría)
-
-		if (!fixUpTasks.isEmpty())
-			for (final FixUpTask f : fixUpTasks)
-				//			parent = this.getParent(f.getCategories().getId());
-				//			f.setCategories(parent);
+	public void changeFixupTaskCategory(final Category cat) {
+		final Collection<FixupTask> res = this.fixUpTaskService.findAll();
+		for (final FixupTask f : res)
+			if (f.getCategory().equals(cat)) {
+				final Category padre = cat.getParentCategory();
+				f.setCategory(padre);
 				this.fixUpTaskService.save(f);
+			}
+	}
 
-		this.categoryRepository.delete(category);
+	public void delete(final Category cat) {
+		Assert.notNull(cat);
+		Assert.isTrue(this.categoryRepository.exists(cat.getId()));
+		if (cat.getNameEnglish().equals("CATEGORY")) {
+			System.out.println("Pasa por el primer if del delete");
+			throw new IllegalArgumentException("NO SE PUEDE BORRAR LA CATEGORIA RAIZ");
+
+		}
+		if (this.tieneHijas(cat) == true) {
+			for (final Category hija : this.findByParent(cat))
+				//this.delete(hija);
+				this.heredaAbuelo(hija);
+			this.changeFixupTaskCategory(cat);
+			this.categoryRepository.delete(cat);
+		}
+
+		else {
+			this.changeFixupTaskCategory(cat);
+			this.categoryRepository.delete(cat);
+		}
 
 	}
 
-	//Other business methods
+	public void heredaAbuelo(final Category c) {
+		final Category padre = c.getParentCategory();
+		final Category abuelo = padre.getParentCategory();
 
-	public Collection<Category> getCategoriesbByParentCategory(final int id) {
-		return this.categoryRepository.getCategoriesbByParentCategory(id);
+		c.setParentCategory(abuelo);
 	}
 
-	public Collection<Category> getParentCategories() {
-		return this.categoryRepository.getParentCategories();
+	public Collection<Category> findByParent(final Category parent) {
+		Assert.notNull(parent);
+		Assert.isTrue(parent.getId() > 0);
+		Assert.notNull(this.categoryRepository.findOne(parent.getId()));
+		return this.categoryRepository.findByParentId(parent.getId());
 	}
 
-	public Collection<Category> getChildCategories(final Integer parentCategoryId) {
-		return this.categoryRepository.getChildCategories(parentCategoryId);
+	public Collection<Category> findAll(final Category dependency) {
+		return this.findByParent(dependency);
 	}
 
-	public Category getParent(final int childCategoryId) {
-		return this.categoryRepository.getParent(childCategoryId);
+	public Category create(final Category dependency) {
+		this.serviceUtils.checkObject(dependency);
+		this.serviceUtils.checkPermisionActor(null, new String[] {
+			Authority.ADMIN
+		});
+		final Category res = new Category();
+		res.setParentCategory(dependency);
+		return res;
 	}
 
-	public Collection<Category> getAllCategories() {
-		return this.categoryRepository.getAllCategories();
-	}
 }

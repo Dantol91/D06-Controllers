@@ -8,127 +8,96 @@
  * http://www.tdg-seville.info/License.html
  --%>
 
-<%@page language="java" contentType="text/html; charset=ISO-8859-1" pageEncoding="ISO-8859-1"%>
+<%@page language="java" contentType="text/html; charset=ISO-8859-1"
+	pageEncoding="ISO-8859-1"%>
 
 <%@taglib prefix="spring" uri="http://www.springframework.org/tags"%>
-<%@taglib prefix="security" uri="http://www.springframework.org/security/tags"%>
+<%@taglib prefix="security"
+	uri="http://www.springframework.org/security/tags"%>
+<%@ taglib uri = "http://java.sun.com/jsp/jstl/sql" prefix = "sql"%>
 
+<sql:setDataSource driver="com.mysql.jdbc.Driver" user="acme-user" password="ACME-Us3r-P@ssw0rd" 
+	url="jdbc:mysql://localhost:3306/Acme-Handy-Worker" var="datasource" />
 
-<img id="bannerIMG" height='300px'
-	src="${bannerURL}" alt='Welcome to Acme Handy Worker! Price, quality, and trust in a single place' />
+<sql:query var="banner" dataSource="${datasource}">
+	SELECT banner FROM settings;
+</sql:query>
 
+<div>
+	<a href="#"><img height="15%" width="35%" src="${banner.rows[0].banner}"
+		alt="Acme-Handy-Worker Co., Inc." /></a>
+</div>
 
 <div>
 	<ul id="jMenu">
-
-		<!-- Opciones comunes a usuarios anónimos y registrados sin importal el rol -->
-
-		<li><a class="fNiv"><spring:message code="master.page.fixUpTasks" /></a>
-			<ul>
-				<li class="arrow"></li>
-				<li><a href="trip/list.do"><spring:message
-							code="master.page.fixUpTasksList" /></a></li>
-				<li><a href="trip/searchByKeywordForm.do"><spring:message
-							code="master.page.fixUpTasksSearch" /></a></li>
-				<li><a href="category/list.do"><spring:message
-							code="master.page.categories" /></a></li>
-
-			</ul></li>
-
-
-		<!-- Opciones según roles -->
-
+		<!-- Do not forget the "fNiv" class for the first level links !! -->
 		<security:authorize access="hasRole('ADMIN')">
-			<%-- <li><a class="fNiv"><spring:message
-						code="master.page.administrator" /></a>
-				<ul>
-					<li class="arrow"></li>
-					<li><a href="actor/administrator/list.do"><spring:message
-								code="master.page.administrator.actors" /></a></li>
-					<li><a href="actor/administrator/edit.do"><spring:message
-								code="master.page.administrator.actors" /></a></li>
-				</ul></li> --%>
-
-
-
 			<li><a class="fNiv"><spring:message
 						code="master.page.administrator" /></a>
 				<ul>
 					<li class="arrow"></li>
-					<li><a href="configuration/admin/display.do"><spring:message
-								code="master.page.displayConfig" /></a></li>
-					<li><a href="actor/admin/list.do"><spring:message
-								code="master.page.listSuspicious" /></a></li>
-					<li><a href="administrator/dashboard.do"><spring:message
-								code="administrator.dashboard.name" /></a></li>
+			
+					<li><a href="settings/administrator/edit.do"><spring:message
+								code="master.page.editsettings" /></a></li>
+					<li><a href="referee/administrator/create.do"><spring:message
+								code="master.page.createreferee" /></a></li>
+					<li><a href="warranty/administrator/list.do"><spring:message
+								code="master.page.warranty.list" /></a></li>
+					<li><a href="category/administrator/list.do"><spring:message
+								code="category.list"></spring:message></a>
+					<li><a href="administrator/administrator/dashboard.do"><spring:message
+								code="master.page.dashboard" /></a></li>
 				</ul></li>
-
 		</security:authorize>
 
-		<security:authorize access="hasRole('Referee')">
+		<security:authorize access="hasRole('CUSTOMER')">
 			<li><a class="fNiv"><spring:message
-						code="master.page.referee" /></a>
-				</security:authorize>
-
-		<security:authorize access="hasRole('SPONSOR')">
-			<li><a class="fNiv"><spring:message
-						code="master.page.sponsor" /></a>
+						code="master.page.customer" /></a>
 				<ul>
 					<li class="arrow"></li>
-					<li><a href="sponsorship/sponsor/create.do"><spring:message
-								code="master.page.sponsor.sponsorship" /></a></li>
-					<li><a href="sponsorship/sponsor/list.do"><spring:message
-								code="master.page.sponsorships" /></a></li>
+					<li><a href="fixupTask/endorsable/list.do"><spring:message 
+								code="master.page.listfixuptasks"></spring:message></a></li>
+				</ul></li>
+		</security:authorize>
+
+		<security:authorize access="hasRole('HANDYWORKER')">
+			<li><a class="fNiv"><spring:message
+						code="master.page.handyWorker" /></a>
+				<ul>
+					<li class="arrow"></li>
+					<li><a href="application/handyworker/list.do"><spring:message
+								code="master.page.handyWorker.application.list" /></a></li>
+					<li><a href="curriculum/handyWorker/display.do"><spring:message
+								code="master.page.handyWorker.curriculum" /></a></li>
+					<li><a href="workplan/handyWorker/list.do"><spring:message
+								code="master.page.handyWorker.workPlan" /></a></li>
+					<li><a href="fixupTask/endorsable/list.do"><spring:message 
+								code="master.page.listfixuptasks"></spring:message></a></li>
 				</ul></li>
 		</security:authorize>
 
 		<security:authorize access="hasRole('REFEREE')">
 			<li><a class="fNiv"><spring:message
 						code="master.page.referee" /></a>
-				<ul>
-					<li class="arrow"></li>
-					<li><a href="note/report/referee/list.do"><spring:message
-								code="master.page.report.notes" /></a></li>
-				</ul></li>
-		</security:authorize>
+				</security:authorize>
 
-		<security:authorize access="hasRole('HANDYWORKER')">
-
-			<li><a class="fNiv"><spring:message
-						code="master.page.handyWorker" /></a>
-				<ul>
-					<li class="arrow"></li>
-					<li><a href="curriculum/handyWorker/displayMyCurriculum.do"><spring:message
-								code="master.page.handyWorker.curriculum" /></a></li>
-					<li><a href="application/handyWorker/list.do"><spring:message
-								code="application.page.list" /></a></li>
-					<li><a href="application/handyWorker/create.do"><spring:message
-								code="aplication.header" /></a></li>
-					<li><a href="finder/handyWorker/create.do"><spring:message
-								code="master.page.finder" /></a></li>
-				</ul></li>
-
-		</security:authorize>
 
 		<security:authorize access="isAnonymous()">
-
 			<li><a class="fNiv" href="security/login.do"><spring:message
 						code="master.page.login" /></a></li>
 
 			<li><a class="fNiv"><spring:message
-						code="master.page.register" /></a>
+						code="master.page.signup" /></a>
 				<ul>
-					<li><a href="handyWorker/registration/registration.do"><spring:message
-								code="master.page.handyWorker.registration" /></a></li>
-					<li><a href="referee/registration/registration.do"><spring:message
-								code="master.page.referee.registration" /></a></li>
-					<li><a href="sponsor/registration/registration.do"><spring:message
-								code="master.page.sponsor.registration" /></a></li>
-					<li><a href="customer/registration/registration.do"><spring:message
-								code="master.page.customer.registration" /></a></li>
-
+					<li class="arrow"></li>
+					<li><a href="none/handyWorker/create.do"><spring:message
+								code="master.page.AsHandyWorker" /></a></li>
+					<li><a href="none/customer/create.do"><spring:message
+								code="master.page.AsCustomer" /></a></li>
 				</ul></li>
 		</security:authorize>
+		
+		
 
 		<security:authorize access="isAuthenticated()">
 			<li><a class="fNiv"> <spring:message
@@ -137,56 +106,34 @@
 			</a>
 				<ul>
 					<li class="arrow"></li>
-						<security:authorize access="hasRole('ADMIN')">
-							<li><a href="actor/admin/edit.do"><spring:message
-								code="master.page.profile.edit" /> </a></li>
-						</security:authorize>
+					<li><a href="folder/actor/list.do"><spring:message
+								code="master.page.listfolders" /> </a></li>
+					<li><a href="message/actor/create.do"><spring:message
+								code="master.page.writemessage" /> </a></li>
+					<security:authorize access="hasRole('CUSTOMER')">
+						<li><a href="customer/display.do"><spring:message
+									code="master.page.customer.profile" /></a></li>
+					</security:authorize>
 					
-						<security:authorize access="hasRole('HANDYWORKER')">
-							<li><a href="actor/handyWorker/edit.do"><spring:message
-								code="master.page.profile.edit" /> </a></li>
-						</security:authorize>
-								
-						<security:authorize access="hasRole('REFEREE')">
-							<li><a href="actor/referee/edit.do"><spring:message
-								code="master.page.profile.edit" /> </a></li>
-						</security:authorize>
-								
-						<security:authorize access="hasRole('CUSTOMER')">
-							<li><a href="actor/customer/edit.do"><spring:message
-								code="master.page.profile.edit" /> </a></li>
-						</security:authorize>
-								
-						<security:authorize access="hasRole('SPONSOR')">
-							<li><a href="actor/sponsor/edit.do"><spring:message
-								code="master.page.profile.edit" /> </a></li>
-						</security:authorize>
-								
-								
+					<security:authorize access="hasRole('HANDYWORKER')">
+						<li><a href="handyWorker/display.do"><spring:message
+									code="master.page.customer.profile" /></a></li>
+					</security:authorize>
+					
+					
+					<security:authorize access="hasRole('ADMIN')">
+						<li><a href="administrator/list.do"><spring:message
+									code="master.page.administrator.listActors" /></a></li>
+					
+					</security:authorize>
 					<li><a href="j_spring_security_logout"><spring:message
-								code="master.page.profile.logout" /> </a></li>
+								code="master.page.logout" /> </a></li>
 				</ul></li>
 		</security:authorize>
-
-		<security:authorize access="isAuthenticated()">
-			<li><a class="fNiv"> <spring:message
-						code="master.page.messages" />
-			</a>
-				<ul>
-					<li class="arrow"></li>
-					<li><a href="message/create.do"><spring:message
-								code="master.page.newmessage" /> </a></li>
-					<li><a href="box/list.do"><spring:message
-								code="master.page.myboxes" /></a></li>
-
-				</ul></li>
-		</security:authorize>
-
 	</ul>
 </div>
 
 <div>
 	<a href="?language=en">en</a> | <a href="?language=es">es</a>
 </div>
-
 

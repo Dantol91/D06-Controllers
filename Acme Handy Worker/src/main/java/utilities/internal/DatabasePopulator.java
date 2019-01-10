@@ -32,7 +32,7 @@ public abstract class DatabasePopulator {
 		DatabaseUtil databaseUtil;
 		ApplicationContext populationContext;
 		Map<String, DomainEntity> entityMap;
-		List<Entry<String, DomainEntity>> sortedEntities;
+		final List<Entry<String, DomainEntity>> sortedEntities;
 
 		EclipseConsole.fix();
 		LogManager.getLogger("org.hibernate").setLevel(Level.OFF);

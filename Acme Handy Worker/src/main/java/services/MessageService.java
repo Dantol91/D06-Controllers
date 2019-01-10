@@ -1,236 +1,173 @@
 
 package services;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 
+import javax.transaction.Transactional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
 import repositories.MessageRepository;
+import security.Authority;
+import security.LoginService;
+import security.UserAccount;
 import domain.Actor;
 import domain.Administrator;
-import domain.Box;
-import domain.Customer;
-import domain.HandyWorker;
+import domain.Folder;
 import domain.Message;
-import domain.Sponsor;
 
 @Service
 @Transactional
 public class MessageService {
 
-	// Managed repository
 	@Autowired
-	private MessageRepository		messageRepository;
-
-	// Supporting services
+	private ActorService		actorService;
 	@Autowired
-	private ActorService			actorService;
+	private MessageRepository	repository;
 	@Autowired
-	private BoxService				boxService;
-
+	private FolderService		folderService;
 	@Autowired
-	private AdministratorService	administratorService;
+	private SettingsService		settingsService;
+	@Autowired
+	private ServiceUtils		serviceUtils;
+	@Autowired
+	private LoginService		loginService;
 
 
-	// Constructor
-	public MessageService() {
-		super();
+	public Message findOne(final Integer id) {
+		this.serviceUtils.checkId(id);
+		return this.repository.findOne(id);
 	}
 
-	// Simple CRUD methods
-
-	public Message create() {
-		Message res;
-		Date moment;
-		res = new Message();
-		final Actor actor = this.actorService.findByPrincipal();
-		moment = new Date(System.currentTimeMillis() - 1);
-		res.setSender(actor);
-		res.setMoment(moment);
-		return res;
-	}
-
-	public Message save(final Message message) {
-
-		// Compruebo que no sea nulo el mensaje que me pasan
-		Assert.notNull(message);
-		Assert.notNull(message.getRecipient());
-
-		// Se inicializa el momento en el que se envía
-		Date moment;
-
-		// Se inicializa el Box del destinatario
-		final Box recipientBox;
-
-		// Se inicializa el mensaje guardado
-		Message saved = null;
-
-		// Si el mensaje que me pasan ya había estado guardado en la base de
-		// datos (se quiere cambiar de Box)
-
-		// Si el mensaje se está guardando en la base de datos por
-		// primera vez:
-		// Se instancia el momento en que se envía como el momento actual
-		moment = new Date(System.currentTimeMillis() - 1);
-		message.setMoment(moment);
-
-		// Se guarda el mensaje en la base de datos
-		saved = this.messageRepository.save(message);
-
-		// Se hace una copia del mensaje original, guardo la copia en la base
-		// de datos y
-		// lo añado a la colección de mensajes del sender
-		final Message copiedMessage = message;
-		moment = new Date(System.currentTimeMillis() - 1);
-		message.setMoment(moment);
-		final Message copiedAndSavedMessage = this.messageRepository.save(copiedMessage);
-
-		// Se comprueba si el mensaje contiene texto marcado como spam
-		// si contiene spam
-		if (this.administratorService.checkIsSpam(saved.getBody()) || this.administratorService.checkIsSpam(saved.getSubject()))
-
-			// Se instancia el box del destinatario como el spambox
-			recipientBox = this.boxService.getSpamBoxFromActorId(saved.getRecipient().getId());
-		else
-			// Se instancia el box del destinatario como inbox
-
-			recipientBox = this.boxService.getInBoxFromActorId(saved.getRecipient().getId());
-		// Se cogen los mensajes del box del destinatario
-		final Collection<Message> recipientBoxMessages = recipientBox.getMessages();
-
-		// Se añade el mensaje guardado
-		recipientBoxMessages.add(saved);
-
-		// Se actualiza el conjunto de mensajes
-		recipientBox.setMessages(recipientBoxMessages);
-
-		// Se coge el sender
-		final Actor sender = this.actorService.findByPrincipal();
-
-		// Se coge el outbox del sender
-		final Box senderOutbox = this.boxService.getOutBoxFromActorId(sender.getId());
-
-		// Se cogen los mensajes del outbox del sender
-		final Collection<Message> senderOutboxMessages = senderOutbox.getMessages();
-
-		// Se añade el mensaje guardado a los mensajes del outbox del sender
-		senderOutboxMessages.add(copiedAndSavedMessage);
-
-		// Se actualizan los mensajes del outbox del sender
-		senderOutbox.setMessages(senderOutboxMessages);
-		this.boxService.save(senderOutbox);
-
-		return saved;
-	}
-
-	public void delete(final Message message) {
-
-		// Se comprueba que el mensaje que me pasan no sea nulo
-		//Assert.notNull(message);
-
-		// Se obtiene el actor que está logueado
-		Actor actor = this.actorService.findByPrincipal();
-
-		// Se comprueba que el mensaje que se pasa sea del actor que está logueado
-		final String type = this.actorService.getType(actor.getUserAccount());
-
-		if (type.equals("HANDYWORKER"))
-			actor = (HandyWorker) actor;
-		else if (type.equals("CUSTOMER"))
-			actor = (Customer) actor;
-		else if (type.equals("ADMIN"))
-			actor = (Administrator) actor;
-		else if (type.equals("SPONSOR"))
-			actor = (Sponsor) actor;
-
-		this.checkPrincipal(message, actor);
-
-		// Se coge el trashbox del actor logueado
-		final Box trashbox = this.boxService.getTrashBoxFolderFromActorId(actor.getId());
-
-		// Se comprueba que el trashbox del actor logueado no sea nulo
-		Assert.notNull(trashbox);
-
-		// Si el mensaje que se pasa está en el trashbox del actor logueado:
-		if (trashbox.getMessages().contains(message)) {
-
-			// Se saca la collection de mensajes del trashbox del actor logueado
-			final Collection<Message> trashboxMessages = trashbox.getMessages();
-			// borro el mensaje que me pasan de la collection de mensajes del
-
-			// Se borran los mensaje de Trashbox
-			trashboxMessages.remove(message);
-
-			// Se actualiza los mensajes del trashbox
-			trashbox.setMessages(trashboxMessages);
-
-			// borro el mensaje del sistema
-			this.messageRepository.delete(message);
-
-		} else {// Si el mensaje que se quiere borrar no está en el trashbox:
-
-			// Se borra el mensaje del box en el que estaba
-
-			final Box messageFolder = this.boxService.getBoxFromMessageId(message.getId());
-			Assert.notNull(messageFolder);
-
-			final Collection<Message> messages = messageFolder.getMessages();
-			messages.remove(message);
-			messageFolder.setMessages(messages);
-
-			// Se coloca en el trashbox el mensaje
-			final Collection<Message> trashboxMessages = trashbox.getMessages();
-			trashboxMessages.add(message);
-			trashbox.setMessages(trashboxMessages);
-
-		}
-	}
-
-	public void delete(final Iterable<Message> messages) {
-		Assert.notNull(messages);
-		this.messageRepository.delete(messages);
-	}
-
-	public Message findOne(final int messageId) {
-		return this.messageRepository.findOne(messageId);
-
+	public Collection<Message> findAll(final Collection<Integer> ids) {
+		this.serviceUtils.checkIds(ids);
+		return this.repository.findAll(ids);
 	}
 
 	public Collection<Message> findAll() {
-		return this.messageRepository.findAll();
-
+		return this.repository.findAll();
 	}
 
-	// Other business methods
-
-	public Message sendMessage() {
-		Message result;
-		Actor actor;
-		Box outbox = null;
-		Date sentDate;
-
-		actor = this.actorService.findByPrincipal();
-		outbox = this.boxService.getOutBoxFromActorId(actor.getId());
-		sentDate = new Date();
-		Assert.notNull(outbox);
-
-		result = this.create();
-		result.setSender(actor);
-		result.setMoment(sentDate);
-		outbox.getMessages().add(result);
-		this.messageRepository.save(result);
-		this.boxService.save(outbox);
-		return result;
+	public Collection<Message> findAll(final Folder dependency) {
+		this.serviceUtils.checkObject(dependency);
+		return this.findAll(dependency);
 	}
 
-	public void checkPrincipal(final Message message, final Actor actor) {
+	public Message create(final Folder dependency) {
+		final Message res = new Message();
+		res.setMoment(new Date(System.currentTimeMillis() - 1000));
+		res.setFolder(dependency);
+		res.setSender(this.actorService.findPrincipal());
+		res.setTags(new ArrayList<String>());
+		return res;
+	}
 
-		final Collection<Message> messages = this.messageRepository.messagesFromActorId(actor.getId());
-		Assert.isTrue(messages.contains(message));
+	public Message save(final Message object) {
+		final Message message = (Message) this.serviceUtils.checkObjectSave(object);
+		final Administrator system = (Administrator) this.actorService.findOneByUserAccount((UserAccount) this.loginService.loadUserByUsername("system"));
+		Message message1 = null;
+		if (message.getId() == 0) {
+			message.setMoment(new Date(System.currentTimeMillis() - 1000));
+			message.setFolder(this.folderService.findFolderByActorAndName(message.getSender(), "outBox"));
+		} else
+			message.setFolder(object.getFolder());
+		final Message res = this.repository.save(message);
+		if (!message.getFolder().getActor().equals(system))
+			this.serviceUtils.checkPermisionActor(message.getFolder().getActor(), null);
+		if (message.getId() == 0) {
+			message1 = message;
+			message1.setId(0);
+			message1.setVersion(0);
+			if (this.containsSpam(message1))
+				message1.setFolder(this.folderService.findFolderByActorAndName(message1.getReceiver(), "spamBox"));
+			else
+				message1.setFolder(this.folderService.findFolderByActorAndName(message1.getReceiver(), "inBox"));
+			this.repository.save(message1);
+		}
+		return res;
+	}
+	public void delete(final Message object) {
+		final Message message = (Message) this.serviceUtils.checkObject(object);
+		final Actor principal = this.actorService.findPrincipal();
+		final Folder trashboxPrincipal = this.folderService.findFolderByActorAndName(principal, "trashbox");
+		if (message.getFolder().equals(trashboxPrincipal)) {
+			Assert.isTrue(message.getFolder().getActor().equals(this.actorService.findPrincipal()));
+			this.serviceUtils.checkPermisionActor(message.getFolder().getActor(), null);
+			for (final Message m : this.findCopies(message))
+				this.repository.delete(m);
+			this.repository.delete(message);
+		} else {
+			message.setFolder(this.folderService.findFolderByActorAndName(object.getFolder().getActor(), "trashbox"));
+			this.save(message);
+		}
+	}
+
+	public boolean containsSpam(final Message message) {
+		final Boolean spam1 = this.containsSpam(message.getBody()) || this.containsSpam(message.getSubject());
+		Boolean spam2 = false;
+		for (final String tag : message.getTags())
+			if (this.containsSpam(tag)) {
+				spam2 = true;
+				break;
+			}
+		return spam1 || spam2;
+	}
+
+	public boolean containsSpam(final String s) {
+		Boolean res = false;
+		for (final String spamWord : this.settingsService.findSettings().getSpamWords())
+			if (s.contains(spamWord)) {
+				res = true;
+				break;
+			}
+		return res;
+	}
+
+	//(Elena) Mensaje a todos los actores. Esta incompleto porque aun no se muy bien como hacerlo.
+
+	public void broadcast(final Message m) {
+		final Message message = (Message) this.serviceUtils.checkObjectSave(m);
+		this.serviceUtils.checkAuthority(Authority.ADMIN);
+		final Actor principal = this.actorService.findPrincipal();
+		for (final Actor a : this.actorService.findAllExceptMe(principal)) {
+			final Message mes = this.create(this.folderService.findFolderByActorAndName(principal, "inBox"));
+			mes.setBody(message.getBody());
+			mes.setPriority(message.getPriority());
+			mes.setSubject(message.getSubject());
+			mes.setTags(message.getTags());
+			mes.setReceiver(a);
+			this.save(mes);
+		}
+	}
+
+	public Collection<Message> findSendedMessages(final Actor a) {
+		Assert.notNull(a);
+		Assert.isTrue(a.getId() > 0);
+		Assert.notNull(this.actorService.findOne(a.getId()));
+		return this.repository.findSendedMessages(a.getId());
+	}
+
+	public Collection<Message> findReceivedMessages(final Actor a) {
+		Assert.notNull(a);
+		Assert.isTrue(a.getId() > 0);
+		Assert.notNull(this.actorService.findOne(a.getId()));
+		return this.repository.findReceivedMessages(a.getId());
+	}
+
+	public Collection<Message> findByFolder(final Folder f) {
+		Assert.notNull(f);
+		Assert.isTrue(f.getId() > 0);
+		Assert.notNull(this.folderService.findOne(f.getId()));
+		return this.repository.findByFolderId(f.getId());
+	}
+
+	public Collection<Message> findCopies(final Message m) {
+		final Message message = (Message) this.serviceUtils.checkObject(m);
+		return this.repository.findMessageByMomentSenderReceiverAndSubject(message.getMoment(), message.getSender().getId(), message.getReceiver().getId(), message.getSubject());
 	}
 
 }

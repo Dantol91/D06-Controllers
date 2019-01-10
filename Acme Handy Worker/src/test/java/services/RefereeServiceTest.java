@@ -59,7 +59,7 @@ public class RefereeServiceTest extends AbstractTest {
 
 		final Referee referee;
 		referee = this.refereeService.findOne(super.getEntityId("referee1"));
-		this.refereeService.delete(referee);
+		//		this.refereeService.delete(referee);
 
 	}
 

@@ -1,8 +1,10 @@
+
 package converters;
+
+import javax.transaction.Transactional;
 
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 import domain.Category;
 
@@ -13,7 +15,6 @@ public class CategoryToStringConverter implements Converter<Category, String> {
 	@Override
 	public String convert(final Category category) {
 		String result;
-
 		if (category == null)
 			result = null;
 		else
@@ -21,4 +22,5 @@ public class CategoryToStringConverter implements Converter<Category, String> {
 
 		return result;
 	}
+
 }

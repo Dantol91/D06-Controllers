@@ -1,9 +1,10 @@
 
 package converters;
 
+import javax.transaction.Transactional;
+
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 import domain.Complaint;
 
@@ -14,7 +15,6 @@ public class ComplaintToStringConverter implements Converter<Complaint, String> 
 	@Override
 	public String convert(final Complaint complaint) {
 		String result;
-
 		if (complaint == null)
 			result = null;
 		else
@@ -22,4 +22,5 @@ public class ComplaintToStringConverter implements Converter<Complaint, String> 
 
 		return result;
 	}
+
 }

@@ -1,13 +1,12 @@
 
 package domain;
 
-import java.util.Collection;
-
 import javax.persistence.Access;
 import javax.persistence.AccessType;
 import javax.persistence.Entity;
 import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
+import javax.persistence.Table;
+import javax.persistence.UniqueConstraint;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
@@ -15,54 +14,60 @@ import org.hibernate.validator.constraints.NotBlank;
 
 @Entity
 @Access(AccessType.PROPERTY)
+@Table(uniqueConstraints = {
+	@UniqueConstraint(columnNames = {
+		"nameEnglish", "parent_category"
+	}), @UniqueConstraint(columnNames = {
+		"nameSpanish", "parent_category"
+	})
+})
 public class Category extends DomainEntity {
 
-	// Constructor
+	// Constructors
 
 	public Category() {
 		super();
 	}
 
 
-	// Attributes
+	// Attributes 
 
-	private String	name;
+	private String		nameEnglish;
+	private String		nameSpanish;
 
+	//Relationships
 
-	@NotBlank
-	public String getName() {
-		return this.name;
-	}
-
-	public void setName(final String name) {
-		this.name = name;
-	}
-
-
-	// Relationships
-
-	private Category				parentCategory;
-	private Collection<Category>	childCategories;
+	private Category	parentCategory;
 
 
 	@Valid
-	@ManyToOne(optional = true)
+	@ManyToOne(optional = false)
 	public Category getParentCategory() {
 		return this.parentCategory;
 	}
 
+	@NotBlank
+	@NotNull
+	public String getNameEnglish() {
+		return this.nameEnglish;
+	}
+
+	public void setNameEnglish(final String nameEnglish) {
+		this.nameEnglish = nameEnglish;
+	}
+
+	@NotBlank
+	@NotNull
+	public String getNameSpanish() {
+		return this.nameSpanish;
+	}
+
+	public void setNameSpanish(final String nameSpanish) {
+		this.nameSpanish = nameSpanish;
+	}
+
 	public void setParentCategory(final Category parentCategory) {
 		this.parentCategory = parentCategory;
-	}
-
-	@NotNull
-	@OneToMany
-	public Collection<Category> getChildCategories() {
-		return this.childCategories;
-	}
-
-	public void setChildCategories(final Collection<Category> childCategories) {
-		this.childCategories = childCategories;
 	}
 
 }

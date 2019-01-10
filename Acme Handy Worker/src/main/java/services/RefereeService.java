@@ -1,152 +1,168 @@
 
 package services;
 
-import java.util.ArrayList;
 import java.util.Collection;
+
+import javax.transaction.Transactional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.encoding.Md5PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
 import repositories.RefereeRepository;
 import security.Authority;
-import security.LoginService;
 import security.UserAccount;
-import security.UserAccountService;
-import domain.Box;
 import domain.Complaint;
+import domain.Note;
 import domain.Referee;
-import domain.SocialProfile;
+import domain.Url;
 
 @Service
 @Transactional
 public class RefereeService {
 
-	// Managed repository
+	// Repository
 
 	@Autowired
-	private RefereeRepository		refereeRepository;
+	private RefereeRepository	repository;
 
-	// Supporting services
-
-	@Autowired
-	private UserAccountService		userAccountService;
+	// Services
 
 	@Autowired
-	private BoxService				boxService;
-
+	private ActorService		actorService;
 	@Autowired
-	private ConfigurationService	configurationService;
-
+	private FolderService		folderService;
 	@Autowired
-	private SocialProfileService	socialProfileService;
+	private ComplaintService	complaintService;
+	@Autowired
+	private NoteService			noteService;
+	@Autowired
+	private ReportService		reportService;
+	@Autowired
+	private ServiceUtils		serviceUtils;
 
 
-	// Constructor
-	public RefereeService() {
-		super();
+	// CRUD methods
+
+	public Referee findOne(final Integer id) {
+		this.serviceUtils.checkId(id);
+		return this.repository.findOne(id);
 	}
 
-	// Simple CRUD methods
-
-	public Referee create() {
-		final Collection<SocialProfile> socialProfiles = new ArrayList<SocialProfile>();
-		final Referee r;
-		UserAccount ua;
-		Authority auth;
-
-		r = new Referee();
-		ua = this.userAccountService.create();
-		auth = new Authority();
-
-		auth.setAuthority("REFEREE");
-		ua.addAuthority(auth);
-		r.setUserAccount(ua);
-		r.setSocialProfiles(socialProfiles);
-		r.setSuspicious(false);
-
-		return r;
+	public Collection<Referee> findAll(final Collection<Integer> ids) {
+		this.serviceUtils.checkIds(ids);
+		return this.repository.findAll(ids);
 	}
 
 	public Collection<Referee> findAll() {
-		return this.refereeRepository.findAll();
+		return this.repository.findAll();
 	}
 
-	public Referee findOne(final int refereeId) {
-		Referee result;
-		result = this.refereeRepository.findOne(refereeId);
-		return result;
-	}
+	public Referee create() {
 
-	public Referee save(Referee referee) {
-		Assert.notNull(referee);
-		if (referee.getId() == 0)
-			Assert.isTrue(this.userAccountService.findByUsername(referee.getUserAccount().getUsername()) == null, "message.error.duplicatedUser");
-		Boolean create = false;
-
-		// Se comprueba si se está creando el user
-		if (referee.getId() == 0) {
-			create = true;
-			Md5PasswordEncoder encoder;
-
-			encoder = new Md5PasswordEncoder();
-			referee.getUserAccount().setPassword(encoder.encodePassword(referee.getUserAccount().getPassword(), null));
-		}
-
-		if (referee.getPhone() != null) {
-			final String tlf = this.configurationService.checkPhoneNumber(referee.getPhone());
-			referee.setPhone(tlf);
-		}
-		if (referee.getId() == 0)
-			referee.getUserAccount().setBanned(false);
-
-		referee = this.refereeRepository.save(referee);
-		if (create)
-			this.boxService.createSystemBoxes(referee);
-
-		return referee;
-	}
-
-	public void delete(final Referee referee) {
-		Assert.notNull(referee);
-		Assert.isTrue(referee.getId() != 0);
-		final Collection<Box> boxes = referee.getBoxes();
-		final Collection<SocialProfile> socialProfiles = referee.getSocialProfiles();
-		this.refereeRepository.delete(referee);
-		this.boxService.delete(boxes);
-		this.socialProfileService.delete(socialProfiles);
-
-	}
-
-	// Other business methods 
-
-	public Referee findByPrincipal() {
-		Referee res;
-		UserAccount userAccount;
-
-		userAccount = LoginService.getPrincipal();
-		Assert.notNull(userAccount);
-		res = this.findByUserAccount(userAccount);
-		Assert.notNull(res);
+		final Referee res = new Referee();
+		res.setUserAccount(new UserAccount());
+		final Authority authority = new Authority();
+		authority.setAuthority(Authority.REFEREE);
+		res.getUserAccount().addAuthority(authority);
+		res.getUserAccount().setBanned(false);
+		res.setSuspicious(false);
 		return res;
 	}
 
-	public Referee findByUserAccount(final UserAccount userAccount) {
-		Assert.notNull(userAccount);
-		Referee res;
-		res = this.refereeRepository.findByUserAccountId(userAccount.getId());
+	public Referee save(final Referee object) {
+		final Md5PasswordEncoder encoder = new Md5PasswordEncoder();
+		final Referee referee = (Referee) this.serviceUtils.checkObjectSave(object);
+		Boolean isCreating = null;
+		if (object.getId() == 0) {
+			isCreating = true;
+			object.getUserAccount().setBanned(false);
+			object.getUserAccount().setPassword(encoder.encodePassword(object.getUserAccount().getPassword(), null));
+			object.setSuspicious(false);
+			this.serviceUtils.checkAuthority(Authority.ADMIN);
+		} else {
+			isCreating = false;
+			referee.setAddress(object.getAddress());
+			referee.setEmail(object.getEmail());
+			referee.setMiddleName(object.getMiddleName());
+			referee.setName(object.getName());
+			referee.setPhone(object.getPhone());
+			referee.setPhoto(object.getPhoto());
+			referee.setSurname(object.getSurname());
+			referee.setUserAccount(object.getUserAccount());
+			referee.getUserAccount().setPassword(encoder.encodePassword(object.getUserAccount().getPassword(), null));
+			this.serviceUtils.checkActor(referee);
+			this.serviceUtils.checkAuthority(Authority.REFEREE);
+		}
+		final Referee res = this.repository.save(object);
+		this.flush();
+		if (isCreating)
+			this.folderService.createSystemFolders(res);
+		return res;
+	}
+	// Other methods
+
+	public void changeBanned(final Referee referee) {
+		final Referee ref = (Referee) this.serviceUtils.checkObject(referee);
+		if (this.isSuspicious(ref) && !ref.getUserAccount().getBanned())
+			ref.getUserAccount().setBanned(true);
+		else
+			ref.getUserAccount().setBanned(false);
+		this.serviceUtils.checkAuthority(Authority.ADMIN);
+		this.repository.save(ref);
+	}
+
+	public boolean isSuspicious(final Referee r) {
+		boolean res = false;
+		Assert.notNull(r);
+		this.serviceUtils.checkId(r.getId());
+		final Referee referee = this.repository.findOne(r.getId());
+		Assert.notNull(referee);
+		res = this.actorService.isSuspicious(referee);
+		if (!res)
+			for (final Complaint c : this.complaintService.findAllComplaintsByReferee(referee)) {
+				res = this.actorService.containsSpam(c.getDescription()) || this.actorService.containsSpam(this.reportService.findByComplaint(c).getDescription());
+				if (!res)
+					for (final Note n : this.noteService.findAllByReport(this.reportService.findByComplaint(c))) {
+						for (final String comment : n.getComments()) {
+							res = this.actorService.containsSpam(comment);
+							if (res)
+								break;
+						}
+						if (res)
+							break;
+					}
+				if (!res)
+					for (final Url u : c.getAttachments()) {
+						res = this.actorService.containsSpam(u.getUrl());
+						if (res)
+							break;
+					}
+				if (res)
+					break;
+			}
 		return res;
 	}
 
-	public Referee findByUserAccountId(final int userAccountId) {
-		return this.refereeRepository.findByUserAccountId(userAccountId);
+	public void banActor(final Referee r) {
+		Assert.notNull(r);
+		this.serviceUtils.checkAuthority("ADMIN");
+		r.getUserAccount().setBanned(true);
+		this.repository.save(r);
+
 	}
 
-	public void selfAssignedComplaint(final Referee referee, final Complaint complaint) {
+	public void unbanActor(final Referee r) {
+		Assert.notNull(r);
+		this.serviceUtils.checkAuthority("ADMIN");
+		r.getUserAccount().setBanned(false);
+		this.repository.save(r);
 
-		referee.getComplaints().add(complaint);
+	}
+
+	public void flush() {
+		this.repository.flush();
 	}
 
 }

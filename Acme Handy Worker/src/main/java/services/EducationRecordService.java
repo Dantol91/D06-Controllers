@@ -3,129 +3,89 @@ package services;
 
 import java.util.Collection;
 
+import javax.transaction.Transactional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
 import repositories.EducationRecordRepository;
+import domain.Curriculum;
 import domain.EducationRecord;
-import domain.HandyWorker;
 
 @Service
 @Transactional
 public class EducationRecordService {
 
-	// MANAGED REPOSITORY 
+	// Managed Repository
 
 	@Autowired
 	private EducationRecordRepository	educationRecordRepository;
 
-	// SUPPORTING SERVICES 
+	//Supporting Services
 
 	@Autowired
-	private ActorService				actorService;
-	@Autowired
-	private AdministratorService		administratorService;
-	@Autowired
-	private HandyWorkerService			handyWorkerService;
+	private CurriculumService			curriculumService;
 
 
-	// CONSTRUCTOR 
+	// Constructors 
 
 	public EducationRecordService() {
 		super();
 	}
 
-	// SIMPLE CRUD METHODS 
-
+	//Simple CRUD methods
 	public EducationRecord create() {
-
-		EducationRecord er;
-		er = new EducationRecord();
-
-		return er;
-
+		EducationRecord res;
+		res = new EducationRecord();
+		return res;
 	}
 
 	public Collection<EducationRecord> findAll() {
-		Collection<EducationRecord> result;
-
-		result = this.educationRecordRepository.findAll();
-		Assert.notNull(result);
-
-		return result;
+		Collection<EducationRecord> res;
+		res = this.educationRecordRepository.findAll();
+		return res;
 	}
-
 	public EducationRecord findOne(final int educationRecordId) {
 		EducationRecord result;
-
 		result = this.educationRecordRepository.findOne(educationRecordId);
-
-		return result;
-	}
-
-	public EducationRecord findOneToEdit(final int educationRecordId) {
-		EducationRecord result;
-
-		result = this.educationRecordRepository.findOne(educationRecordId);
-
-		this.checkPrincipal(result);
-
 		return result;
 	}
 
 	public EducationRecord save(final EducationRecord educationRecord) {
 		Assert.notNull(educationRecord);
-		if (educationRecord.getEndDate() != null)
-			Assert.isTrue(educationRecord.getStartDate().before(educationRecord.getEndDate()), "message.error.startDateEndDate");
-
-		final HandyWorker h;
-		Collection<EducationRecord> c;
-		EducationRecord result;
-
-		result = this.educationRecordRepository.save(educationRecord);
-		h = (HandyWorker) this.actorService.findByPrincipal();
-
-		c = h.getCurriculum().getEducationRecords();
-		if (!c.contains(result)) {
-			c.add(result);
-			h.getCurriculum().setEducationRecords(c);
-			this.handyWorkerService.save(h);
-		}
-		// Comprobamos si es spam
-		this.administratorService.checkIsSpam(educationRecord.getAttachmentLink());
-		this.administratorService.checkIsSpam(educationRecord.getComment());
-		this.administratorService.checkIsSpam(educationRecord.getDiplomaTitle());
-
-		return result;
+		EducationRecord res;
+		res = this.educationRecordRepository.save(educationRecord);
+		return res;
 	}
 
 	public void delete(final EducationRecord educationRecord) {
 		Assert.notNull(educationRecord);
-		Assert.isTrue(educationRecord.getId() != 0);
-
-		HandyWorker h;
-		Collection<EducationRecord> c;
-
-		h = (HandyWorker) this.actorService.findByPrincipal();
-
-		c = h.getCurriculum().getEducationRecords();
-		c.remove(educationRecord);
-		h.getCurriculum().setEducationRecords(c);
-
 		this.educationRecordRepository.delete(educationRecord);
-
 	}
 
-	// Other business methods
+	public void delete(final Collection<EducationRecord> educationsRecords) {
 
-	public void checkPrincipal(final EducationRecord er) {
-		HandyWorker h;
+		for (final EducationRecord i : educationsRecords) {
+			Assert.notNull(i);
+			this.educationRecordRepository.delete(i);
+		}
+	}
 
-		h = (HandyWorker) this.actorService.findByPrincipal();
+	public Collection<EducationRecord> findAll(final Curriculum dependency) {
+		Assert.notNull(dependency);
+		Assert.isTrue(dependency.getId() > 0);
+		Assert.notNull(this.curriculumService.findOne(dependency.getId()));
+		return dependency.getEducationRecords();
+	}
 
-		Assert.isTrue(h.getCurriculum().getEducationRecords().contains(er));
+	public EducationRecord create(final Curriculum dependency) {
+		Assert.notNull(dependency);
+		Assert.isTrue(dependency.getId() > 0);
+		Assert.notNull(this.curriculumService.findOne(dependency.getId()));
+		final EducationRecord res = this.create();
+		res.setCurriculum(dependency);
+		return res;
 	}
 
 }

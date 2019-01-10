@@ -31,11 +31,9 @@ public class MessageServiceTest extends AbstractTest {
 	public void testCreateMessage() {
 		super.authenticate("HandyWorker1");
 		final Message message;
-		message = this.messageService.create();
 		//Assert.notNull(message);
 		super.unauthenticate();
 
-		System.out.println("Message: " + message);
 	}
 
 	@Test

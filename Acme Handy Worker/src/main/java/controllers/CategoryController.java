@@ -1,3 +1,4 @@
+
 package controllers;
 
 import java.util.Collection;
@@ -6,6 +7,7 @@ import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.util.Assert;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -16,64 +18,89 @@ import services.CategoryService;
 import domain.Category;
 
 @Controller
-@RequestMapping("/category")
-public class CategoryController extends AbstractController{
-	
-	// Services 
+@RequestMapping("/category/administrator")
+public class CategoryController extends AbstractController {
 
+	// Services
 	@Autowired
-	private CategoryService categoryService;
-	
-	// Constructors 
+	private CategoryService	categoryService;
 
-	public CategoryController() {
-		super();
-	}
 
-	// Listing 
+	// List
 
 	@RequestMapping(value = "/list", method = RequestMethod.GET)
-	public ModelAndView list(@RequestParam(required=false) final Integer parentCategoryId) {
+	public ModelAndView list() {
 		ModelAndView result;
 		Collection<Category> categories;
-		
-		if(parentCategoryId==null){
-			categories = categoryService.getParentCategories();
-		}else{
-			categories = categoryService.getChildCategories(parentCategoryId);
-		}
-		
+
+		categories = this.categoryService.findAll();
+
 		result = new ModelAndView("category/list");
-		result.addObject("requestURI", "category/list.do");
-		result.addObject("categories",categories);
+		result.addObject("requestURI", "category/administrator/list.do");
+		result.addObject("category", categories);
 
 		return result;
 	}
-	
-	// Creation 
-	
-	@RequestMapping(value = "/administrator/create", method = RequestMethod.GET)
-	public ModelAndView create() {
+
+	// Display
+
+	@RequestMapping(value = "/display", method = RequestMethod.GET)
+	public ModelAndView display(@RequestParam final int categoryId) {
 		ModelAndView result;
-		Category category;
-		
-		
-		category = this.categoryService.create();
-		result = this.createEditModelAndView(category);
-		
+		Category c;
+		c = this.categoryService.findOne(categoryId);
+		result = new ModelAndView("category/display");
+		result.addObject("category", c);
+
 		return result;
 	}
-	
-	// Edition 
-	
+
+	@RequestMapping(value = "/create", method = RequestMethod.GET)
+	public ModelAndView create() {
+		ModelAndView result;
+		Category c;
+		System.out.println("Pasa por aqui");
+		c = this.categoryService.create();
+		System.out.println("Pasa por aqui tb");
+
+		result = this.createEditModelAndView(c);
+		System.out.println("Pasa por aqui tb tb");
+
+		return result;
+
+	}
+
 	@RequestMapping(value = "/edit", method = RequestMethod.GET)
 	public ModelAndView edit(@RequestParam final int categoryId) {
 		ModelAndView result;
-		Category category;
+		Category c;
 
-		category = categoryService.findOne(categoryId);
-		
-		result = this.createEditModelAndView(category);
+		c = this.categoryService.findOne(categoryId);
+		Assert.notNull(c);
+		result = this.createEditModelAndView(c);
+
+		return result;
+
+	}
+
+	protected ModelAndView createEditModelAndView(final Category c) {
+		ModelAndView result;
+
+		result = this.createEditModelAndView(c, null);
+
+		return result;
+	}
+
+	protected ModelAndView createEditModelAndView(final Category category, final String messageCode) {
+		final ModelAndView result;
+		final Category p = category.getParentCategory();
+		final Collection<Category> res = this.categoryService.findAll();
+
+		result = new ModelAndView("category/edit");
+		result.addObject("category", category);
+		result.addObject("parentCategory", p);
+		result.addObject("categories", res);
+		result.addObject("message", messageCode);
 
 		return result;
 	}
@@ -89,55 +116,21 @@ public class CategoryController extends AbstractController{
 				this.categoryService.save(category);
 				result = new ModelAndView("redirect:list.do");
 			} catch (final Throwable oops) {
-				String errorMessage = "category.commit.error";
-				
-				if(oops.getMessage().contains("message.error")){
-					errorMessage = oops.getMessage();
-				}
-				result = this.createEditModelAndView(category, errorMessage);
+				result = this.createEditModelAndView(category, "category.commit.error");
 			}
-
 		return result;
 	}
 
 	@RequestMapping(value = "/edit", method = RequestMethod.POST, params = "delete")
 	public ModelAndView delete(final Category category, final BindingResult binding) {
 		ModelAndView result;
-
 		try {
 			this.categoryService.delete(category);
 			result = new ModelAndView("redirect:list.do");
 		} catch (final Throwable oops) {
 			result = this.createEditModelAndView(category, "category.commit.error");
+
 		}
-
-		return result;
-	}
-	
-	// Ancillary methods 
-
-	protected ModelAndView createEditModelAndView(final Category category) {
-		ModelAndView result;
-
-		result = this.createEditModelAndView(category, null);
-
-		return result;
-	}
-
-	protected ModelAndView createEditModelAndView(final Category category, final String message) {
-		ModelAndView result;
-		Collection<Category> categories;
-
-
-		result = new ModelAndView("category/edit");
-		categories = categoryService.findAll();
-		categories.remove(category);
-		categories.removeAll(category.getChildCategories());
-		
-		result.addObject("category", category);
-		result.addObject("message", message);
-		result.addObject("categories", categories);
-
 		return result;
 	}
 }

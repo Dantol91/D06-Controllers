@@ -3,72 +3,97 @@ package services;
 
 import java.util.Collection;
 
+import javax.transaction.Transactional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
 import repositories.PhaseRepository;
+import security.Authority;
 import domain.Phase;
+import domain.WorkPlan;
 
 @Service
 @Transactional
 public class PhaseService {
 
-	// Managed repository 
+	// Repository
 
 	@Autowired
-	private PhaseRepository	phaseRepository;
+	private PhaseRepository	repository;
+
+	// Services
+
+	@Autowired
+	private WorkPlanService	workPlanService;
+	@Autowired
+	private ServiceUtils	serviceUtils;
 
 
-	// Supporting services 
+	// CRUD methods
 
-	// Constructors 
-
-	public PhaseService() {
-		super();
+	public Phase findOne(final Integer id) {
+		this.serviceUtils.checkId(id);
+		return this.repository.findOne(id);
 	}
 
-	// Simple CRUD methods 
-
-	public Phase create() {
-		final Phase p;
-
-		p = new Phase();
-
-		return p;
-	}
-
-	public Phase save(final Phase phase) {
-		Assert.notNull(phase);
-		return this.phaseRepository.save(phase);
-	}
-
-	public Phase findOne(final int phaseId) {
-		Assert.isTrue(phaseId != 0);
-
-		Phase result;
-
-		result = this.phaseRepository.findOne(phaseId);
-
-		return result;
+	public Collection<Phase> findAll(final Collection<Integer> ids) {
+		this.serviceUtils.checkIds(ids);
+		return this.repository.findAll(ids);
 	}
 
 	public Collection<Phase> findAll() {
-		Collection<Phase> result;
-
-		result = this.phaseRepository.findAll();
-		Assert.notNull(result);
-
-		return result;
+		return this.repository.findAll();
 	}
 
-	public void delete(final Phase phase) {
-		Assert.notNull(phase);
-
-		this.phaseRepository.delete(phase);
+	public Collection<Phase> findAll(final WorkPlan dependency) {
+		this.serviceUtils.checkId(dependency);
+		Assert.notNull(this.workPlanService.findOne(dependency.getId()));
+		return this.repository.findByWorkPlan(dependency.getId());
 	}
 
-	// Other Business Methods 
+	public Phase create(final WorkPlan dependency) {
+		final Phase res = new Phase();
+		res.setWorkPlan(dependency);
+		this.serviceUtils.checkActor(res.getWorkPlan().getHandyWorker());
+		this.serviceUtils.checkAuthority(Authority.HANDYWORKER);
+		return res;
+	}
+
+	public Phase create2() {
+		final Phase res = new Phase();
+		return res;
+	}
+
+	public Phase save(final Phase object) {
+		final Phase phase = (Phase) this.serviceUtils.checkObjectSave(object);
+		if (object.getId() > 0) {
+			final Phase old = this.findOne(phase.getId());
+			old.setDescription(phase.getDescription());
+			old.setEnd(phase.getEnd());
+			old.setStart(phase.getStart());
+			old.setTitle(phase.getTitle());
+		}
+		Assert.isTrue(object.getEnd().before(phase.getWorkPlan().getFixupTask().getEnd()));
+		Assert.isTrue(object.getEnd().after(phase.getWorkPlan().getFixupTask().getStart()));
+		Assert.isTrue(object.getStart().before(phase.getWorkPlan().getFixupTask().getEnd()));
+		Assert.isTrue(object.getStart().after(phase.getWorkPlan().getFixupTask().getStart()));
+		this.serviceUtils.checkAuthority(Authority.HANDYWORKER);
+		final Phase res = this.repository.save(object);
+		return res;
+	}
+
+	public void delete(final Phase object) {
+		final Phase phase = (Phase) this.serviceUtils.checkObject(object);
+		this.serviceUtils.checkAuthority(Authority.HANDYWORKER);
+		this.repository.delete(phase);
+	}
+
+	// Other methods
+
+	public void flush() {
+		this.repository.flush();
+	}
 
 }

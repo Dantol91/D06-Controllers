@@ -32,7 +32,7 @@
 	<form:errors class="error" path="password" />
 	<br />
 	
-	<jstl:if test="${showError == false}">
+	<jstl:if test="${showError == true}">
 		<div class="error">
 			<spring:message code="security.login.failed" />
 		</div>

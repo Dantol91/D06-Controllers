@@ -2,7 +2,7 @@
 
 <!-- 
  * tiles_es.xml
-
+ *
  * Copyright (C) 2018 Universidad de Sevilla
  * 
  * The use of this project is hereby constrained to the conditions of the 
@@ -13,18 +13,32 @@
 <!DOCTYPE tiles-definitions PUBLIC
        "-//Apache Software Foundation//DTD Tiles Configuration 2.0//EN"
        "http://tiles.apache.org/dtds/tiles-config_2_0.dtd">
-
+      
 <tiles-definitions>
 
-	<definition name="customer/edit" extends="master.page">
-		<put-attribute name="title" value="Editar customer" />
+	<definition name="customer/action-1" extends="master.page">	
+		<put-attribute name="title" value="Cliente: Acción 1" />
+		<put-attribute name="body" value="/views/customer/action-1.jsp" />
+	</definition>
+	
+	<definition name="customer/action-2" extends="master.page">	
+		<put-attribute name="title" value="Cliente: Acción 2" />
+		<put-attribute name="body" value="/views/customer/action-2.jsp" />
+	</definition>
+	
+	<definition name="customer/administrator/list" extends="master.page">	
+		<put-attribute name="title" value="Cliente: Lista" />
+		<put-attribute name="body" value="/views/customer/list.jsp" />
+	</definition>
+	
+	<definition name="customer/edit" extends="master.page">	
+		<put-attribute name="title" value="Cliente: Editar" />
 		<put-attribute name="body" value="/views/customer/edit.jsp" />
 	</definition>
 	
-	<definition name="customer/registration" extends="master.page">
-		<put-attribute name="title" value="Registrar customer" />
-		<put-attribute name="body" value="/views/customer/registration.jsp" />
+	<definition name="customer/display" extends="master.page">	
+		<put-attribute name="title" value="Cliente: Mostrar" />
+		<put-attribute name="body" value="/views/customer/display.jsp" />
 	</definition>
-	
 	
 </tiles-definitions>

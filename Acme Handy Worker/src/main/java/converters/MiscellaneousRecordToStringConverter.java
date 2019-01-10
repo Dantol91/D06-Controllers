@@ -1,23 +1,24 @@
+
 package converters;
+
+import javax.transaction.Transactional;
 
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 import domain.MiscellaneousRecord;
 
 @Component
 @Transactional
-public class MiscellaneousRecordToStringConverter implements Converter<MiscellaneousRecord, String>{
-	
-	@Override
-	public String convert(final MiscellaneousRecord miscellaneousRecord) {
-		String result;
+public class MiscellaneousRecordToStringConverter implements Converter<MiscellaneousRecord, String> {
 
-		if (miscellaneousRecord == null)
+	@Override
+	public String convert(final MiscellaneousRecord mr) {
+		String result;
+		if (mr == null)
 			result = null;
 		else
-			result = String.valueOf(miscellaneousRecord.getId());
+			result = String.valueOf(mr.getId());
 
 		return result;
 	}

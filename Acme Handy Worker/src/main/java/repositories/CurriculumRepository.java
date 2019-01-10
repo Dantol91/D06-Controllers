@@ -10,7 +10,7 @@ import domain.Curriculum;
 @Repository
 public interface CurriculumRepository extends JpaRepository<Curriculum, Integer> {
 
-	@Query("select h.curriculum from HandyWorker h where h.id = ?1")
-	Curriculum getCurriculumByHandyWorkerId(int handyWorkerId);
-
+	@Query("select c from Curriculum c where c.handyWorker.id = ?1")
+	Curriculum findByHandyWorkerId(int handyWorkerId);
+	
 }

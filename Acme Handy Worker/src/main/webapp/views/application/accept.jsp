@@ -22,21 +22,27 @@
 	<spring:message code="application.accept" />
 </p>
 
+<!--  Primero pongo la autoridad ya que solo un customer acepta las apps -->
 <security:authorize access="hasRole('CUSTOMER')">
 
 	<div>
 		<form:form action="application/edit.do" method="post" id="formCreate" name="formCreate" modelAttribute="application"></form:form>
 
-		<!-- Attributes Hidden -->
-		
+	<!-- No me acuerdo exactamente para que hacia falta  -->
 			<form:hidden path="id" />
 			<form:hidden path="version" />
 			<form:hidden path="customer" />
-			<form:hidden path="offeredPrice" />
-			<form:hidden path="registerMoment" />
+			<form:hidden path="price" />
+			<form:hidden path="moment" />
+			<form:hidden path="workerMoments" />
+			<form:hidden path="customerMoments" />
 			<form:hidden path="handyWorker" />
 			<form:hidden path="fixupTask" />
 			<form:hidden path="creditCard" />
+<!-- los atributos -->
+			
+		<!-- Status ------------------->
+		<!-- TODO: -->
 		
 			
 		<form:label path="status"><spring:message code="application.status"></spring:message></form:label>
@@ -51,7 +57,7 @@
 			
 		<form:label path="brandName"><spring:message code="creditCard.brandName"></spring:message></form:label>
 		<form:select id="brandName" path="brandName">
-		<form:option value="${STATUS}" label="MASTERCARD"></form:option>
+		<form:option value="${STATUS}" label="VISA"></form:option>
 		<form:options items="${status}" itemLabel="name" itemValue="id" />
 		</form:select>
 		<form:errors cssClass="error" path="status" />
@@ -59,18 +65,14 @@
 		<form:label path="number"> <spring:message code="creditCard.number" /></form:label>
 		<form:input path="number" /><form:errors cssClass="error" path="number" /><br />
 			
-		<form:label path="expirationMonth"> <spring:message code="creditCard.expirationMonth" /></form:label>
-		<form:input path="expirationMonth" /><form:errors cssClass="error" path="expirationMonth" /><br />
-		
-				<form:label path="expirationYear"> <spring:message code="creditCard.expirationYear" /></form:label>
-		<form:input path="expirationYear" /><form:errors cssClass="error" path="expirationYear" /><br />
+		<form:label path="expirationDate"> <spring:message code="creditCard.expirationDate" /></form:label>
+		<form:input path="expirationDate" /><form:errors cssClass="error" path="expirationDate" /><br />
 			
 		<form:label path="cvvCode"> <spring:message code="creditCard.cvvCode" /></form:label>
 		<form:input path="cvvCode" /><form:errors cssClass="error" path="cvvCode" /><br />
 		
 	</div>
-	
-	
+	<!--  Los botones de crear y cancelar -->
 		<input type="submit" name="save" value="<spring:message code="application.save"></spring:message>" />
 		<input type="button" name="cancel" value="${cancel}" onclick="javascript:relativeRedir('application/list.do')" />	
 

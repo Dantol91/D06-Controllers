@@ -3,52 +3,35 @@ package domain;
 
 import javax.persistence.Access;
 import javax.persistence.AccessType;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.ManyToOne;
 import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 
+import org.hibernate.validator.constraints.NotBlank;
 import org.hibernate.validator.constraints.URL;
 
 @Entity
 @Access(AccessType.PROPERTY)
 public class Sponsorship extends DomainEntity {
 
-	// Constructor
+	// Constructors
 
 	public Sponsorship() {
 		super();
 	}
 
 
-	// Attributes
+	// Attributes 
 
-	private String	bannerURL;
-	private String	targetPage;
-
-
-	@URL
-	public String getBannerURL() {
-		return this.bannerURL;
-	}
-
-	public void setBannerURL(final String bannerURL) {
-		this.bannerURL = bannerURL;
-	}
-
-	@URL
-	public String getTargetPage() {
-		return this.targetPage;
-	}
-
-	public void setTargetPage(final String targetPage) {
-		this.targetPage = targetPage;
-	}
-
+	private String		banner;
+	private String		page;
+	private CreditCard	creditCard;
 
 	// Relationships
 
 	private Sponsor		sponsor;
-	private CreditCard	creditCard;
 
 
 	@Valid
@@ -61,8 +44,31 @@ public class Sponsorship extends DomainEntity {
 		this.sponsor = sponsor;
 	}
 
+	@URL
+	@NotBlank
+	@NotNull
+	public String getBanner() {
+		return this.banner;
+	}
+
+	public void setBanner(final String banner) {
+		this.banner = banner;
+	}
+
+	@URL
+	@NotBlank
+	@NotNull
+	public String getPage() {
+		return this.page;
+	}
+
+	public void setPage(final String page) {
+		this.page = page;
+	}
+
+	@NotNull
 	@Valid
-	@ManyToOne(optional = false)
+	@Column(unique = true)
 	public CreditCard getCreditCard() {
 		return this.creditCard;
 	}

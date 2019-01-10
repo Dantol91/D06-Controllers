@@ -12,34 +12,41 @@ import domain.Application;
 @Repository
 public interface ApplicationRepository extends JpaRepository<Application, Integer> {
 
-	@Query("select sum(case when a.status = 'PENDING' " + "then 1.0 else 0.0 end)/count(a) as pendingStatus_ratio from Application a")
-	Double getPendingRatio();
+	@Query("select a from Application a where a.handyWorker.id = ?1")
+	Collection<Application> findApplicationsByHandyWorker(int handyWorkerId);
 
-	@Query("select sum(case when a.status = 'REJECTED' " + "then 1.0 else 0.0 end)/count(a) as rejectedStatus_ratio from Application a")
-	Double getRejectedRatio();
+	@Query("select a from Application a where a.fixupTask.id = ?1")
+	Collection<Application> findApplicationsByFixupTask(int fixupTaskId);
 
-	@Query("select sum(case when a.status = 'ACCEPTED' " + "then 1.0 else 0.0 end)/count(a) as acceptedStatus_ratio from Application a")
-	Double getAcceptedRatio();
+	//Q.C4
+	//The average, the minimum, the maximum, and the standard deviation of the
+	//price offered in the applications
 
-	@Query("select a from HandyWorker h join h.applications a where h.id = ?1")
-	Collection<Application> getHandyWorkerApplications(int handyWorkerId);
+	@Query("select min(a.price),max(a.price),avg(a.price),sqrt(sum(a.price * a.price) /count(a.price) - (avg(a.price) *avg(a.price))) from Application a")
+	Double[] applicationPriceStats();
 
-	@Query("select a from HandyWorker h join h.applications a where h.id = ?1 group by a.status")
-	Collection<Application> getHandyWorkerApplicationsByStatus(int handyWorkerId);
+	//Q.C5
+	//The ratio of pending applications.
 
-	@Query("select distinct a.status from HandyWorker h join h.applications a where h.id = ?1")
-	Collection<String> getSetOfStatus(int handyWorkerId);
+	@Query("select (select count(*) from a where status='PENDING' )/count(*)*100 from Application a")
+	Double pendingRatio();
 
-	@Query("select a from HandyWorker h join h.applications a where h.id = ?1 and a.status= ?2")
-	Collection<Application> getApplicationsByStatusAndHandyWorkerId(int handyWorkerId, String status);
+	//Q.C6
+	//The ratio of accepted applications.
 
-	@Query("select avg(f.applications.size), min(f.applications.size) , max(f.applications.size), sqrt(sum(f.applications.size*f.applications.size)/count(f.applications.size)-(avg(f.applications.size)*avg(f.applications.size))) from FixUpTask f")
-	Double[] computeAvgMinMaxStdevApplicationPerFixUpTask();
+	@Query("select (select count(*) from a where status='ACCEPTED' )/count(*)*100 from Application a")
+	Double acceptedRatio();
 
-	@Query("select avg(a.offeredPrice), min(a.offeredPrice) , max(a.offeredPrice), sqrt(sum(a.offeredPrice*a.offeredPrice)/count(a.offeredPrice)-(avg(a.offeredPrice)*avg(a.offeredPrice))) from Application a")
-	Double[] computeAvgMinMaxStdvPerOfferedPrice();
+	//Q.C7
+	//The ratio of rejected applications.
 
-	@Query("select a from Application a where a.status='PENDING' and a.registerMoment < CURRENT_DATE")
-	Double getPendingRatioCannotChange();
+	@Query("select count(app)/(select count(ap) from Application ap)from Application app where app.status='REJECTED'")
+	Double appsRejectedRatio();
+
+	//Q.C8
+	//The ratio of pending applications that cannot change its status because their time period elapsed.
+
+	@Query("select 100*(count(app)/(select count(ap) from Application ap))from Application app where app.status='PENDING' and app.fixupTask.end < CURRENT_TIMESTAMP ")
+	Double lateApplicationsRatio();
 
 }

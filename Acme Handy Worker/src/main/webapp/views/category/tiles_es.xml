@@ -2,9 +2,8 @@
 
 <!-- 
  * tiles_es.xml
-
- * Copyright (C) 2017 Universidad de Sevilla
- * Author (A) 2012 Rafael Corchuelo (corchu@us.es)
+ *
+ * Copyright (C) 2018 Universidad de Sevilla
  * 
  * The use of this project is hereby constrained to the conditions of the 
  * TDG Licence, a copy of which you may download from 
@@ -14,17 +13,38 @@
 <!DOCTYPE tiles-definitions PUBLIC
        "-//Apache Software Foundation//DTD Tiles Configuration 2.0//EN"
        "http://tiles.apache.org/dtds/tiles-config_2_0.dtd">
-       
+      
 <tiles-definitions>
 
+	<definition name="category/action-1" extends="master.page">	
+		<put-attribute name="title" value="Category: Acción 1" />
+		<put-attribute name="body" value="/views/category/action-1.jsp" />
+	</definition>
+	
+	<definition name="administrator/action-2" extends="master.page">	
+		<put-attribute name="title" value="Category: Acción 2" />
+		<put-attribute name="body" value="/views/category/action-2.jsp" />
+	</definition>
+	
+	<definition name="category/create" extends="master.page">	
+		<put-attribute name="title" value="Category:Creacion" />
+		<put-attribute name="body" value="/views/category/edit.jsp" />
+	</definition>
+	
+		<definition name="category/create" extends="master.page">	
+		<put-attribute name="title" value="Category:editar" />
+		<put-attribute name="body" value="/views/category/edit.jsp" />
+	</definition>
+	
+	
 	<definition name="category/list" extends="master.page">	
-		<put-attribute name="title" value="Lista de categorías" />
+		<put-attribute name="title" value="Category:Listar" />
 		<put-attribute name="body" value="/views/category/list.jsp" />
 	</definition>
 	
-	<definition name="category/edit" extends="master.page">	
-		<put-attribute name="title" value="Edición de categoría" />
-		<put-attribute name="body" value="/views/category/edit.jsp" />
+	<definition name="category/display" extends="master.page">	
+		<put-attribute name="title" value="Category:display" />
+		<put-attribute name="body" value="/views/category/display.jsp" />
 	</definition>
 	
 </tiles-definitions>

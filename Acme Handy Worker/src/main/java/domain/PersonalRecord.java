@@ -3,7 +3,12 @@ package domain;
 
 import javax.persistence.Access;
 import javax.persistence.AccessType;
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
+import javax.persistence.OneToOne;
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
 
 import org.hibernate.validator.constraints.Email;
 import org.hibernate.validator.constraints.NotBlank;
@@ -13,23 +18,28 @@ import org.hibernate.validator.constraints.URL;
 @Access(AccessType.PROPERTY)
 public class PersonalRecord extends DomainEntity {
 
-	// Constructor
+	// Constructors
 
 	public PersonalRecord() {
 		super();
 	}
 
 
-	// Attributes
+	// Attributes 
 
-	private String	fullName;
-	private String	photo;
-	private String	email;
-	private String	phone;
-	private String	linkedInProfile;
+	private String		fullName;
+	private String		photo;
+	private String		email;
+	private String		phone;
+	private String		linkedinProfile;
+
+	// Relationships
+
+	private Curriculum	curriculum;
 
 
 	@NotBlank
+	@NotNull
 	public String getFullName() {
 		return this.fullName;
 	}
@@ -38,7 +48,9 @@ public class PersonalRecord extends DomainEntity {
 		this.fullName = fullName;
 	}
 
+	@NotBlank
 	@URL
+	@NotNull
 	public String getPhoto() {
 		return this.photo;
 	}
@@ -47,7 +59,10 @@ public class PersonalRecord extends DomainEntity {
 		this.photo = photo;
 	}
 
+	@NotBlank
 	@Email
+	@NotNull
+	@Pattern(regexp = "^(\\w+@(\\w+(\\.\\w*)*)?)|(\\w+( \\w+)* <\\w+@(\\w+(\\.\\w*)*)?>)$")
 	public String getEmail() {
 		return this.email;
 	}
@@ -57,6 +72,7 @@ public class PersonalRecord extends DomainEntity {
 	}
 
 	@NotBlank
+	@NotNull
 	public String getPhone() {
 		return this.phone;
 	}
@@ -65,15 +81,25 @@ public class PersonalRecord extends DomainEntity {
 		this.phone = phone;
 	}
 
+	@NotBlank
 	@URL
-	public String getLinkedInProfile() {
-		return this.linkedInProfile;
+	@NotNull
+	public String getLinkedinProfile() {
+		return this.linkedinProfile;
 	}
 
-	public void setLinkedInProfile(final String linkedInProfile) {
-		this.linkedInProfile = linkedInProfile;
+	public void setLinkedinProfile(final String linkedinProfile) {
+		this.linkedinProfile = linkedinProfile;
 	}
 
-	// Relationships
+	@Valid
+	@OneToOne(optional = false, cascade = CascadeType.ALL)
+	public Curriculum getCurriculum() {
+		return this.curriculum;
+	}
+
+	public void setCurriculum(final Curriculum curriculum) {
+		this.curriculum = curriculum;
+	}
 
 }

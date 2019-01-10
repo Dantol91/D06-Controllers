@@ -1,5 +1,14 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 
+<!-- 
+ * tiles_es.xml
+ *
+ * Copyright (C) 2018 Universidad de Sevilla
+ * 
+ * The use of this project is hereby constrained to the conditions of the 
+ * TDG Licence, a copy of which you may download from 
+ * http://www.tdg-seville.info/License.html
+ -->
 
 <!DOCTYPE tiles-definitions PUBLIC
        "-//Apache Software Foundation//DTD Tiles Configuration 2.0//EN"
@@ -7,29 +16,34 @@
        
 <tiles-definitions>
 
-	<definition name="fixUpTask/list" extends="master.page">	
-		<put-attribute name="title" value="FixUpTask list" />
-		<put-attribute name="body" value="/views/fixUpTask/list.jsp" />
+	<definition name="fixupTask/edit" extends="master.page">	
+		<put-attribute name="title" value="Edit fixup task" />
+		<put-attribute name="body" value="/views/fixupTask/edit.jsp" />
 	</definition>
 	
-	<definition name="fixUpTask/edit" extends="master.page">	
-		<put-attribute name="title" value="Edit fixUpTask" />
-		<put-attribute name="body" value="/views/fixUpTask/edit.jsp" />
+	<definition name="fixupTask/list" extends="master.page">	
+		<put-attribute name="title" value="List fixup task" />
+		<put-attribute name="body" value="/views/fixupTask/list.jsp" />
 	</definition>
 	
-	<definition name="fixUpTask/customer/display" extends="master.page">	
-		<put-attribute name="title" value="FixUpTask details" />
-		<put-attribute name="body" value="/views/fixUpTask/display.jsp" />
+	<definition name="fixupTask/display" extends="master.page">	
+		<put-attribute name="title" value="Display fixup task" />
+		<put-attribute name="body" value="/views/fixupTask/display.jsp" />
 	</definition>
 	
-	<definition name="fixUpTask/display" extends="master.page">	
-		<put-attribute name="title" value="FixUpTask details" />
-		<put-attribute name="body" value="/views/fixUpTask/display.jsp" />
+		<definition name="fixupTask/create" extends="master.page">	
+		<put-attribute name="title" value="Create fixupTask" />
+		<put-attribute name="body" value="/views/fixupTask/create.jsp" />
 	</definition>
 	
-	<definition name="fixUpTask/searchByKeyword" extends="master.page">	
-		<put-attribute name="title" value="Search fixUpTasks by keyword" />
-		<put-attribute name="body" value="/views/fixUpTask/searchByKeyword.jsp" />
+	<definition name="fixupTask/displayFinder" extends="master.page">	
+		<put-attribute name="title" value=" Finder " />
+		<put-attribute name="body" value="/views/fixupTask/displayFinder.jsp" />
+	</definition>
+	
+	<definition name="fixupTask/finderSearch" extends="master.page">	
+		<put-attribute name="title" value=" Search " />
+		<put-attribute name="body" value="/views/fixupTask/finderSearch.jsp" />
 	</definition>
 	
 </tiles-definitions>

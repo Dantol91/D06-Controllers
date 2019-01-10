@@ -32,7 +32,7 @@ import domain.DomainEntity;
 @Access(AccessType.PROPERTY)
 public class UserAccount extends DomainEntity implements UserDetails {
 
-	// Constructors 
+	// Constructors -----------------------------------------------------------
 
 	private static final long	serialVersionUID	= 7254823034213841482L;
 
@@ -44,9 +44,9 @@ public class UserAccount extends DomainEntity implements UserDetails {
 	}
 
 
-	// Attributes 
+	// Attributes -------------------------------------------------------------
 
-	// UserDetails interface 
+	// UserDetails interface --------------------------------------------------
 
 	private String					username;
 	private String					password;
@@ -88,6 +88,14 @@ public class UserAccount extends DomainEntity implements UserDetails {
 		this.authorities = authorities;
 	}
 
+	public boolean getBanned() {
+		return this.banned;
+	}
+
+	public void setBanned(final boolean banned) {
+		this.banned = banned;
+	}
+
 	public void addAuthority(final Authority authority) {
 		Assert.notNull(authority);
 		Assert.isTrue(!this.authorities.contains(authority));
@@ -111,7 +119,7 @@ public class UserAccount extends DomainEntity implements UserDetails {
 	@Transient
 	@Override
 	public boolean isAccountNonLocked() {
-		return true;
+		return !this.getBanned();
 	}
 
 	@Transient
@@ -123,15 +131,7 @@ public class UserAccount extends DomainEntity implements UserDetails {
 	@Transient
 	@Override
 	public boolean isEnabled() {
-		return true;
-	}
-
-	public boolean Banned() {
-		return this.banned;
-	}
-
-	public void setBanned(final boolean banned) {
-		this.banned = banned;
+		return !this.getBanned();
 	}
 
 }

@@ -13,7 +13,6 @@
 <%@taglib prefix="spring" uri="http://www.springframework.org/tags"%>
 <%@taglib prefix="security" uri="http://www.springframework.org/security/tags"%>
 
-
 <img id="bannerIMG" height='300px'
 	src="${bannerURL}" alt='Welcome to Acme Handy Worker! Price, quality, and trust in a single place' />
 

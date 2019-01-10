@@ -1,3 +1,4 @@
+
 package converters;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,22 +15,25 @@ import domain.Message;
 public class StringToMessageConverter implements Converter<String, Message> {
 
 	@Autowired
-	MessageRepository messageRepository;
+	private MessageRepository	repository;
+
 
 	@Override
-	public Message convert(String text) {
-		Message result;
+	public Message convert(final String s) {
+		Message res;
 		int id;
+
 		try {
-			if (StringUtils.isEmpty(text)) {
-				result = null;
-			} else {
-				id = Integer.valueOf(text);
-				result = messageRepository.findOne(id);
+			if (StringUtils.isEmpty(s))
+				res = null;
+			else {
+				id = Integer.valueOf(s);
+				res = this.repository.findOne(id);
 			}
-		} catch (Throwable oops) {
-			throw new IllegalArgumentException(oops);
+		} catch (final Throwable t) {
+			throw new IllegalArgumentException(t);
 		}
-			return result;
+		return res;
 	}
+
 }

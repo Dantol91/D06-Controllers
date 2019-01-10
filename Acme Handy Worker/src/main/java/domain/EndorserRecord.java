@@ -4,6 +4,9 @@ package domain;
 import javax.persistence.Access;
 import javax.persistence.AccessType;
 import javax.persistence.Entity;
+import javax.persistence.ManyToOne;
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 
 import org.hibernate.validator.constraints.Email;
 import org.hibernate.validator.constraints.NotBlank;
@@ -13,23 +16,28 @@ import org.hibernate.validator.constraints.URL;
 @Access(AccessType.PROPERTY)
 public class EndorserRecord extends DomainEntity {
 
-	// Constructor
+	// Constructors
 
 	public EndorserRecord() {
 		super();
 	}
 
 
-	// Attributes
+	// Attributes 
 
-	private String	fullName;
-	private String	email;
-	private String	phone;
-	private String	linkedInProfile;
-	private String	comment;
+	private String		fullName;
+	private String		photo;
+	private String		email;
+	private String		phone;
+	private String		linkedinProfile;
+
+	// Relationships
+
+	private Curriculum	curriculum;
 
 
 	@NotBlank
+	@NotNull
 	public String getFullName() {
 		return this.fullName;
 	}
@@ -38,7 +46,20 @@ public class EndorserRecord extends DomainEntity {
 		this.fullName = fullName;
 	}
 
+	@NotBlank
+	@URL
+	@NotNull
+	public String getPhoto() {
+		return this.photo;
+	}
+
+	public void setPhoto(final String photo) {
+		this.photo = photo;
+	}
+
+	@NotBlank
 	@Email
+	@NotNull
 	public String getEmail() {
 		return this.email;
 	}
@@ -48,6 +69,7 @@ public class EndorserRecord extends DomainEntity {
 	}
 
 	@NotBlank
+	@NotNull
 	public String getPhone() {
 		return this.phone;
 	}
@@ -56,23 +78,25 @@ public class EndorserRecord extends DomainEntity {
 		this.phone = phone;
 	}
 
+	@NotBlank
 	@URL
-	public String getLinkedInProfile() {
-		return this.linkedInProfile;
+	@NotNull
+	public String getlinkedinProfile() {
+		return this.linkedinProfile;
 	}
 
-	public void setLinkedInProfile(final String linkedInProfile) {
-		this.linkedInProfile = linkedInProfile;
+	public void setlinkedinProfile(final String linkedinProfile) {
+		this.linkedinProfile = linkedinProfile;
 	}
 
-	public String getComment() {
-		return this.comment;
+	@Valid
+	@ManyToOne(optional = false)
+	public Curriculum getCurriculum() {
+		return this.curriculum;
 	}
 
-	public void setComment(final String comment) {
-		this.comment = comment;
+	public void setCurriculum(final Curriculum curriculum) {
+		this.curriculum = curriculum;
 	}
-
-	// Relationships
 
 }

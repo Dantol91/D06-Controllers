@@ -11,6 +11,6 @@ import domain.Finder;
 public interface FinderRepository extends JpaRepository<Finder, Integer> {
 
 	@Query("select f from Finder f where f.handyWorker.id = ?1")
-	Finder getFinderByHandyWorkerId(int handyWorkerId);
-
+	Finder findByHandyWorkerId(int handyWorkerId);
+	
 }

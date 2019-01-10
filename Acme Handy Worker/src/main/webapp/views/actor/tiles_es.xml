@@ -13,17 +13,13 @@
 <!DOCTYPE tiles-definitions PUBLIC
        "-//Apache Software Foundation//DTD Tiles Configuration 2.0//EN"
        "http://tiles.apache.org/dtds/tiles-config_2_0.dtd">
-
+      
 <tiles-definitions>
 
-	<definition name="actor/list" extends="master.page">
-		<put-attribute name="title" value="Lista de actores" />
+<definition name="actor/list" extends="master.page">	
+		<put-attribute name="title" value="Actor: Lista de actores" />
 		<put-attribute name="body" value="/views/actor/list.jsp" />
 	</definition>
-	
-	<definition name="actor/edit" extends="master.page">
-		<put-attribute name="title" value="Editar cuenta" />
-		<put-attribute name="body" value="/views/actor/edit.jsp" />
-	</definition>
+
 	
 </tiles-definitions>

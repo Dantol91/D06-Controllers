@@ -1,33 +1,39 @@
+
 package converters;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
-import domain.SocialProfile;
 import repositories.SocialProfileRepository;
+import domain.SocialProfile;
 
 @Component
 @Transactional
 public class StringToSocialProfileConverter implements Converter<String, SocialProfile> {
 
 	@Autowired
-	SocialProfileRepository socialProfileRepository;
+	private SocialProfileRepository	repository;
+
 
 	@Override
-	public SocialProfile convert(final String text) {
-		SocialProfile result;
+	public SocialProfile convert(final String s) {
+		SocialProfile res;
 		int id;
 
 		try {
-			id = Integer.valueOf(text);
-			result = this.socialProfileRepository.findOne(id);
-		} catch (final Throwable oops) {
-			throw new IllegalArgumentException(oops);
+			if (StringUtils.isEmpty(s))
+				res = null;
+			else {
+				id = Integer.valueOf(s);
+				res = this.repository.findOne(id);
+			}
+		} catch (final Throwable t) {
+			throw new IllegalArgumentException(t);
 		}
-
-		return result;
+		return res;
 	}
 
 }

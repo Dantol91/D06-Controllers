@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 
+<!-- * tiles_es.xml * * Copyright (C) 2017 Universidad de Sevilla * * The 
+	use of this project is hereby constrained to the conditions of the * TDG 
+	Licence, a copy of which you may download from * http://www.tdg-seville.info/License.html -->
 
 <!DOCTYPE tiles-definitions PUBLIC
        "-//Apache Software Foundation//DTD Tiles Configuration 2.0//EN"
@@ -8,9 +11,14 @@
 <tiles-definitions>
 
 	
-	<definition name="personalRecord/edit" extends="master.page">
-		<put-attribute name="title" value="Editar expediente personal" />
-		<put-attribute name="body" value="/views/personalRecord/edit.jsp" />
+	<definition name="personalRecord/display" extends="master.page">
+		<put-attribute name="title" value="Mostrar crónica de miscelánea" />
+		<put-attribute name="body" value="/views/personalRecord/display.jsp" />
 	</definition>
 	
+	<definition name="personalRecord/edit" extends="master.page">
+		<put-attribute name="title" value="Editar crónica de miscelánea" />
+		<put-attribute name="body" value="/views/personalRecord/edit.jsp" />
+	</definition>
+
 </tiles-definitions>

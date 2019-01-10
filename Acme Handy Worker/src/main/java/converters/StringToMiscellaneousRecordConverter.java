@@ -1,3 +1,4 @@
+
 package converters;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,27 +12,28 @@ import domain.MiscellaneousRecord;
 
 @Component
 @Transactional
-public class StringToMiscellaneousRecordConverter implements
-		Converter<String, MiscellaneousRecord> {
+public class StringToMiscellaneousRecordConverter implements Converter<String, MiscellaneousRecord> {
 
 	@Autowired
-	MiscellaneousRecordRepository miscellaneousRecordRepository;
+	private MiscellaneousRecordRepository	repository;
+
 
 	@Override
-	public MiscellaneousRecord convert(String text) {
-		MiscellaneousRecord result;
+	public MiscellaneousRecord convert(final String s) {
+		MiscellaneousRecord res;
 		int id;
+
 		try {
-			if (StringUtils.isEmpty(text)) {
-				result = null;
-			} else {
-				id = Integer.valueOf(text);
-				result = miscellaneousRecordRepository.findOne(id);
+			if (!StringUtils.isEmpty(s))
+				res = null;
+			else {
+				id = Integer.valueOf(s);
+				res = this.repository.findOne(id);
 			}
-		} catch (Throwable oops) {
-			throw new IllegalArgumentException(oops);
+		} catch (final Throwable t) {
+			throw new IllegalArgumentException(t);
 		}
-		return result;
+		return res;
 	}
 
 }

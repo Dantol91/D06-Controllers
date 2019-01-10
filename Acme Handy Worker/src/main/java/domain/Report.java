@@ -3,42 +3,49 @@ package domain;
 
 import java.util.Collection;
 import java.util.Date;
+import java.util.List;
 
 import javax.persistence.Access;
 import javax.persistence.AccessType;
+import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.OneToMany;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
+import javax.persistence.OneToOne;
+import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Past;
 
 import org.hibernate.validator.constraints.NotBlank;
-import org.hibernate.validator.constraints.URL;
 import org.springframework.format.annotation.DateTimeFormat;
 
 @Entity
 @Access(AccessType.PROPERTY)
 public class Report extends DomainEntity {
 
-	// Constructor
+	// Constructors
 
 	public Report() {
 		super();
 	}
 
 
-	// Attributes
+	// Attributes 
 
-	private Date	moment;
-	private String	description;
-	private String	attachmentLink;
-	private boolean	finalMode;
+	private Date				moment;
+	private String				description;
+	private List<Url>			attachments;
+	private boolean				draft;
 
+	// Relationships
+
+	private Complaint			complaint;
+	private Collection<Note>	notes;
+
+
+	//----------Getters y Setters-------
 
 	@Past
 	@NotNull
-	@Temporal(TemporalType.DATE)
 	@DateTimeFormat(pattern = "dd/MM/yyyy")
 	public Date getMoment() {
 		return this.moment;
@@ -48,7 +55,28 @@ public class Report extends DomainEntity {
 		this.moment = moment;
 	}
 
+	@Valid
+	@OneToOne(optional = false)
+	public Complaint getComplaint() {
+		return this.complaint;
+	}
+
+	public void setComplaint(final Complaint complaint) {
+		this.complaint = complaint;
+	}
+
+	@NotNull
+	@ElementCollection
+	public List<Url> getAttachments() {
+		return this.attachments;
+	}
+
+	public void setAttachments(final List<Url> attachments) {
+		this.attachments = attachments;
+	}
+
 	@NotBlank
+	@NotNull
 	public String getDescription() {
 		return this.description;
 	}
@@ -57,35 +85,21 @@ public class Report extends DomainEntity {
 		this.description = description;
 	}
 
-	@URL
-	public String getAttachmentLink() {
-		return this.attachmentLink;
-	}
-
-	public void setAttachmentLink(final String attachmentLink) {
-		this.attachmentLink = attachmentLink;
-	}
-
-	public boolean getFinalMode() {
-		return this.finalMode;
-	}
-
-	public void setFinalMode(final boolean finalMode) {
-		this.finalMode = finalMode;
-	}
-
-
-	// Relationships
-
-	private Collection<Note>	notes;
-
-
 	@NotNull
-	@OneToMany
+	public boolean getDraft() {
+		return this.draft;
+	}
+
+	public void setDraft(final boolean draft) {
+		this.draft = draft;
+	}
+
+	@Valid
+	@NotNull
+	@OneToMany(mappedBy = "report")
 	public Collection<Note> getNotes() {
 		return this.notes;
 	}
-
 	public void setNotes(final Collection<Note> notes) {
 		this.notes = notes;
 	}

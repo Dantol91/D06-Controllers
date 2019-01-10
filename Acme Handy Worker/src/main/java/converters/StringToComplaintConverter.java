@@ -1,34 +1,39 @@
+
 package converters;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import repositories.ComplaintRepository;
 import domain.Complaint;
 
 @Component
 @Transactional
-public class StringToComplaintConverter implements Converter<String, Complaint>{
-	
+public class StringToComplaintConverter implements Converter<String, Complaint> {
+
 	@Autowired
-	ComplaintRepository complaintRepository;
+	private ComplaintRepository	repository;
 
 
 	@Override
-	public Complaint convert(final String text) {
-		Complaint result;
+	public Complaint convert(final String s) {
+		Complaint res;
 		int id;
 
 		try {
-			id = Integer.valueOf(text);
-			result = this.complaintRepository.findOne(id);
-		} catch (final Throwable oops) {
-			throw new IllegalArgumentException(oops);
+			if (StringUtils.isEmpty(s))
+				res = null;
+			else {
+				id = Integer.valueOf(s);
+				res = this.repository.findOne(id);
+			}
+		} catch (final Throwable t) {
+			throw new IllegalArgumentException(t);
 		}
-
-		return result;
+		return res;
 	}
 
 }

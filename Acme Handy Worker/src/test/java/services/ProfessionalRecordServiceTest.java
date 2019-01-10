@@ -26,21 +26,6 @@ public class ProfessionalRecordServiceTest extends AbstractTest {
 	private ProfessionalRecordService	professionalRecordService;
 
 
-	@Test
-	public void testCreateProfessionalRecord() {
-		ProfessionalRecord professionalRecord;
-
-		professionalRecord = this.professionalRecordService.create();
-
-		Assert.notNull(professionalRecord);
-		Assert.isNull(professionalRecord.getCompanyName());
-		Assert.isNull(professionalRecord.getStartDate());
-		Assert.isNull(professionalRecord.getEndDate());
-		Assert.isNull(professionalRecord.getRole());
-		Assert.isNull(professionalRecord.getAttachmentLink());
-		Assert.isNull(professionalRecord.getComment());
-	}
-
 	/*
 	 * @Test
 	 * public void testSaveProfessionalRecord() {

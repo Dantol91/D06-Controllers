@@ -1,7 +1,6 @@
 
 package services;
 
-import java.util.ArrayList;
 import java.util.Collection;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,32 +9,24 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
 import repositories.AdministratorRepository;
-import security.Authority;
-import security.LoginService;
-import security.UserAccount;
-import security.UserAccountService;
-import domain.Actor;
 import domain.Administrator;
-import domain.Box;
-import domain.Customer;
-import domain.HandyWorker;
-import domain.Referee;
-import domain.SocialProfile;
-import domain.Sponsor;
 
 @Service
 @Transactional
 public class AdministratorService {
 
-	// Managed repository
+	// Managed repository 
 
 	@Autowired
 	private AdministratorRepository	administratorRepository;
 
-	// Supporting services
+	//Supporting Services
 
 	@Autowired
-	private BoxService				boxService;
+	private FolderService			folderService;
+
+	@Autowired
+	private ServiceUtils			serviceUtils;
 
 	@Autowired
 	private UserAccountService		userAccountService;
@@ -43,134 +34,94 @@ public class AdministratorService {
 	@Autowired
 	private ActorService			actorService;
 
-	@Autowired
-	private ConfigurationService	configurationService;
 
-	@Autowired
-	private SocialProfileService	socialProfileService;
+	//Constructor
 
-
-	// Constructor
 	public AdministratorService() {
 		super();
 	}
 
-	// Simple CRUD methods
+	// CRUD methods
 
 	public Administrator create() {
+		Administrator result;
+		result = new Administrator();
+		result.setUserAccount(this.userAccountService.create("ADMIN"));
+		result.getUserAccount().setBanned(false);
+		result.setSuspicious(false);
 
-		Administrator a;
-		final Collection<SocialProfile> socialProfiles;
-		UserAccount ua;
-		Authority auth;
-
-		a = new Administrator();
-		socialProfiles = new ArrayList<SocialProfile>();
-		ua = this.userAccountService.create();
-		auth = new Authority();
-
-		auth.setAuthority("ADMIN");
-		ua.addAuthority(auth);
-
-		a.setUserAccount(ua);
-		a.setSocialProfiles(socialProfiles);
-		a.setSuspicious(false);
-
-		return a;
+		return result;
 
 	}
 
 	public Administrator save(final Administrator administrator) {
+
 		Assert.notNull(administrator);
+		Boolean isCreating = null;
 
-		Administrator result;
+		if (administrator.getId() == 0) {
+			isCreating = true;
+			administrator.setSuspicious(false);
 
-		result = this.administratorRepository.save(administrator);
-		this.boxService.createSystemBoxes(result);
+		} else {
+			isCreating = false;
 
-		return result;
-	}
+			this.serviceUtils.checkIdSave(administrator);
 
-	public void delete(final Administrator administrator) {
-		Assert.notNull(administrator);
-		Assert.isTrue(administrator.getId() != 0);
-		final Collection<Box> boxes = administrator.getBoxes();
+			Administrator adminDB;
+			Assert.isTrue(administrator.getId() > 0);
 
-		final Collection<SocialProfile> socialProfiles = administrator.getSocialProfiles();
-		this.administratorRepository.delete(administrator);
-		this.boxService.delete(boxes);
+			adminDB = this.administratorRepository.findOne(administrator.getId());
 
-		this.socialProfileService.delete(socialProfiles);
-	}
-	public Collection<Administrator> findAll() {
-		Collection<Administrator> result;
+			administrator.setSuspicious(adminDB.getSuspicious());
+			administrator.setUserAccount(adminDB.getUserAccount());
 
-		result = this.administratorRepository.findAll();
-		Assert.notNull(result);
+			this.serviceUtils.checkAuthority("ADMIN");
 
-		return result;
+			this.serviceUtils.checkActor(administrator);
+
+		}
+		Administrator res;
+
+		res = this.administratorRepository.save(administrator);
+		this.flush();
+		if (isCreating)
+			this.folderService.createSystemFolders(res);
+		return res;
 	}
 
 	public Administrator findOne(final int administratorId) {
-		Administrator result;
-
-		result = this.administratorRepository.findOne(administratorId);
-
-		return result;
+		return this.administratorRepository.findOne(administratorId);
 	}
 
-	// Other business methods
-
-	public Administrator findByPrincipal() {
-		Administrator res;
-		UserAccount userAccount;
-
-		userAccount = LoginService.getPrincipal();
-		Assert.notNull(userAccount);
-		res = this.findByUserAccount(userAccount);
+	public Collection<Administrator> findAll() {
+		Collection<Administrator> res;
+		res = this.administratorRepository.findAll();
 		Assert.notNull(res);
+
 		return res;
 	}
 
-	public Administrator findByUserAccount(final UserAccount userAccount) {
-		Assert.notNull(userAccount);
-		Administrator res;
-		res = this.administratorRepository.findByUserAccountId(userAccount.getId());
-		return res;
+	// other business methods 
+
+	public void flush() {
+		this.administratorRepository.flush();
 	}
 
-	public Administrator findByUserAccountId(final int userAccountId) {
-		return this.administratorRepository.findByUserAccountId(userAccountId);
+	public void banActor(final Administrator a) {
+		Assert.notNull(a);
+		this.serviceUtils.checkAuthority("ADMIN");
+		a.getUserAccount().setBanned(true);
+		this.administratorRepository.save(a);
+
 	}
 
-	public boolean checkIsSpam(String text) {
+	public void unBanActor(final Administrator a) {
+		Assert.notNull(a);
+		this.serviceUtils.checkAuthority("ADMIN");
+		a.getUserAccount().setBanned(false);
+		this.administratorRepository.save(a);
 
-		Collection<String> spamWords;
-		Boolean isSpam = false;
-		Actor a = this.actorService.findByPrincipal();
-		final String type = this.actorService.getType(a.getUserAccount());
-
-		if (type.equals("HANDYWORKER"))
-			a = (HandyWorker) a;
-		else if (type.equals("REFEREE"))
-			a = (Referee) a;
-		else if (type.equals("CUSTOMER"))
-			a = (Customer) a;
-		else if (type.equals("SPONSOR"))
-			a = (Sponsor) a;
-
-		if (text == null)
-			return isSpam;
-		else {
-			text = text.toLowerCase();
-			spamWords = this.configurationService.getSpamWords();
-			for (final String spamword : spamWords)
-				if (text.contains(spamword)) {
-					isSpam = true;
-					a.setSuspicious(true);
-				}
-		}
-		return isSpam;
 	}
 
 }

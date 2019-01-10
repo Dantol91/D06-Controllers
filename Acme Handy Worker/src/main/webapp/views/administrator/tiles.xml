@@ -2,7 +2,7 @@
 
 <!-- 
  * tiles.xml
-
+ *
  * Copyright (C) 2018 Universidad de Sevilla
  * 
  * The use of this project is hereby constrained to the conditions of the 
@@ -13,17 +13,38 @@
 <!DOCTYPE tiles-definitions PUBLIC
        "-//Apache Software Foundation//DTD Tiles Configuration 2.0//EN"
        "http://tiles.apache.org/dtds/tiles-config_2_0.dtd">
-
+       
 <tiles-definitions>
 
-	<definition name="administrator/dashboard" extends="master.page">
-		<put-attribute name="title" value="Dashboard" />
+	<definition name="administrator/action-1" extends="master.page">	
+		<put-attribute name="title" value="Administrator: Action 1" />
+		<put-attribute name="body" value="/views/administrator/action-1.jsp" />
+	</definition>
+	
+	<definition name="administrator/action-2" extends="master.page">	
+		<put-attribute name="title" value="Administrator: Action 2" />
+		<put-attribute name="body" value="/views/administrator/action-2.jsp" />
+	</definition>
+	
+	<definition name="administrator/create" extends="master.page">	
+		<put-attribute name="title" value="Administrador: create" />
+		<put-attribute name="body" value="/views/administrator/edit.jsp" />
+	</definition>
+	
+	
+	<definition name="administrator/dashboard" extends="master.page">	
+		<put-attribute name="title" value="Administrator: dashboard" />
 		<put-attribute name="body" value="/views/administrator/dashboard.jsp" />
 	</definition>
 	
-	<definition name="administrator/edit" extends="master.page">
-		<put-attribute name="title" value="Edit account" />
+	<definition name="administrator/edit" extends="master.page">	
+		<put-attribute name="title" value="Administrador: display" />
 		<put-attribute name="body" value="/views/administrator/edit.jsp" />
+	</definition>
+	
+	<definition name="administrator/display" extends="master.page">	
+		<put-attribute name="title" value="Administrador: display" />
+		<put-attribute name="body" value="/views/administrator/display.jsp" />
 	</definition>
 	
 </tiles-definitions>

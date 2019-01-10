@@ -1,9 +1,11 @@
+
 package converters;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import repositories.SectionRepository;
 import domain.Section;
@@ -13,22 +15,25 @@ import domain.Section;
 public class StringToSectionConverter implements Converter<String, Section> {
 
 	@Autowired
-	SectionRepository sectionRepository;
+	private SectionRepository	repository;
 
 
 	@Override
-	public Section convert(final String text) {
-		Section result;
+	public Section convert(final String s) {
+		Section res;
 		int id;
 
 		try {
-			id = Integer.valueOf(text);
-			result = this.sectionRepository.findOne(id);
-		} catch (final Throwable oops) {
-			throw new IllegalArgumentException(oops);
+			if (StringUtils.isEmpty(s))
+				res = null;
+			else {
+				id = Integer.valueOf(s);
+				res = this.repository.findOne(id);
+			}
+		} catch (final Throwable t) {
+			throw new IllegalArgumentException(t);
 		}
-
-		return result;
+		return res;
 	}
 
 }

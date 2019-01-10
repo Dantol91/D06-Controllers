@@ -8,13 +8,11 @@ import javax.persistence.AccessType;
 import javax.persistence.Entity;
 import javax.persistence.OneToMany;
 import javax.validation.Valid;
-import javax.validation.constraints.Digits;
-
-import org.hibernate.validator.constraints.Range;
+import javax.validation.constraints.NotNull;
 
 @Entity
 @Access(AccessType.PROPERTY)
-public class Customer extends Actor {
+public class Customer extends Endorsable {
 
 	// Constructors
 
@@ -23,35 +21,21 @@ public class Customer extends Actor {
 	}
 
 
-	// Attributes
-
-	private double	score;
-
-
-	@Digits(integer = 3, fraction = 2)
-	@Range(min = -1, max = 1)
-	public double getScore() {
-		return this.score;
-	}
-
-	public void setScore(final double score) {
-		this.score = score;
-	}
-
+	// Attributes 
 
 	// Relationships
 
-	private Collection<FixUpTask>	fixUpTasks;
+	private Collection<FixupTask>	fixupTasks;
 
 
+	@NotNull
 	@Valid
 	@OneToMany(mappedBy = "customer")
-	public Collection<FixUpTask> getFixUpTasks() {
-		return this.fixUpTasks;
+	public Collection<FixupTask> getFixupTasks() {
+		return this.fixupTasks;
 	}
-
-	public void setFixUpTasks(final Collection<FixUpTask> fixUpTasks) {
-		this.fixUpTasks = fixUpTasks;
+	public void setFixupTasks(final Collection<FixupTask> fixupTasks) {
+		this.fixupTasks = fixupTasks;
 	}
 
 }

@@ -1,17 +1,16 @@
 
 package domain;
 
-import java.util.Collection;
 import java.util.Date;
 
 import javax.persistence.Access;
 import javax.persistence.AccessType;
 import javax.persistence.Entity;
-import javax.persistence.OneToMany;
+import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
 import javax.validation.Valid;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
 
 import org.springframework.format.annotation.DateTimeFormat;
 
@@ -19,21 +18,47 @@ import org.springframework.format.annotation.DateTimeFormat;
 @Access(AccessType.PROPERTY)
 public class Finder extends DomainEntity {
 
-	// Constructor
+	// Constructors
 
 	public Finder() {
 		super();
 	}
 
 
-	// Attributes
+	// Attributes 
 
-	private String	keyword;
-	private Double	maxPrice;
-	private Double	minPrice;
-	private Date	startDate;
-	private Date	endDate;
+	private String		keyword;
+	private Double		minPrice;
+	private Double		maxPrice;
+	private Date		start;
+	private Date		end;
 
+	// Relationships
+
+	private Warranty	warranty;
+	private Category	category;
+	private HandyWorker	handyWorker;
+
+
+	@Valid
+	@ManyToOne(optional = true)
+	public Category getCategory() {
+		return this.category;
+	}
+
+	public void setCategory(final Category category) {
+		this.category = category;
+	}
+
+	@Valid
+	@ManyToOne(optional = true)
+	public Warranty getWarranty() {
+		return this.warranty;
+	}
+
+	public void setWarranty(final Warranty warranty) {
+		this.warranty = warranty;
+	}
 
 	public String getKeyword() {
 		return this.keyword;
@@ -43,16 +68,7 @@ public class Finder extends DomainEntity {
 		this.keyword = keyword;
 	}
 
-	@Valid
-	public Double getMaxPrice() {
-		return this.maxPrice;
-	}
-
-	public void setMaxPrice(final Double maxPrice) {
-		this.maxPrice = maxPrice;
-	}
-
-	@Valid
+	@Min(value = 0)
 	public Double getMinPrice() {
 		return this.minPrice;
 	}
@@ -61,35 +77,35 @@ public class Finder extends DomainEntity {
 		this.minPrice = minPrice;
 	}
 
-	@Valid
-	@Temporal(TemporalType.DATE)
+	@Min(value = 0)
+	public Double getMaxPrice() {
+		return this.maxPrice;
+	}
+
+	public void setMaxPrice(final Double maxPrice) {
+		this.maxPrice = maxPrice;
+	}
+
 	@DateTimeFormat(pattern = "dd/MM/yyyy")
-	public Date getStartDate() {
-		return this.startDate;
+	public Date getStart() {
+		return this.start;
 	}
 
-	public void setStartDate(final Date startDate) {
-		this.startDate = startDate;
+	public void setStart(final Date start) {
+		this.start = start;
 	}
 
-	@Valid
-	@Temporal(TemporalType.DATE)
 	@DateTimeFormat(pattern = "dd/MM/yyyy")
-	public Date getEndDate() {
-		return this.endDate;
+	public Date getEnd() {
+		return this.end;
 	}
 
-	public void setEndDate(final Date endDate) {
-		this.endDate = endDate;
+	public void setEnd(final Date end) {
+		this.end = end;
 	}
 
-
-	// Relationships
-
-	private Collection<FixUpTask>	fixUpTasks;
-	private HandyWorker				handyWorker;
-
-
+	@NotNull
+	@Valid
 	@OneToOne(optional = false)
 	public HandyWorker getHandyWorker() {
 		return this.handyWorker;
@@ -97,15 +113,6 @@ public class Finder extends DomainEntity {
 
 	public void setHandyWorker(final HandyWorker handyWorker) {
 		this.handyWorker = handyWorker;
-	}
-
-	@OneToMany
-	public Collection<FixUpTask> getFixUpTasks() {
-		return this.fixUpTasks;
-	}
-
-	public void setFixUpTasks(final Collection<FixUpTask> fixUpTasks) {
-		this.fixUpTasks = fixUpTasks;
 	}
 
 }

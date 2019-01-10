@@ -1,9 +1,11 @@
+
 package converters;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import repositories.CategoryRepository;
 import domain.Category;
@@ -13,22 +15,25 @@ import domain.Category;
 public class StringToCategoryConverter implements Converter<String, Category> {
 
 	@Autowired
-	CategoryRepository categoryRepository;
+	private CategoryRepository	repository;
 
 
 	@Override
-	public Category convert(final String text) {
-		Category result;
+	public Category convert(final String s) {
+		Category res;
 		int id;
 
 		try {
-			id = Integer.valueOf(text);
-			result = this.categoryRepository.findOne(id);
-		} catch (final Throwable oops) {
-			throw new IllegalArgumentException(oops);
+			if (StringUtils.isEmpty(s))
+				res = null;
+			else {
+				id = Integer.valueOf(s);
+				res = this.repository.findOne(id);
+			}
+		} catch (final Throwable t) {
+			throw new IllegalArgumentException(t);
 		}
-
-		return result;
+		return res;
 	}
 
 }

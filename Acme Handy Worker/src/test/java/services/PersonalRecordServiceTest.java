@@ -37,7 +37,6 @@ public class PersonalRecordServiceTest extends AbstractTest {
 		Assert.isNull(personalRecord.getPhoto());
 		Assert.isNull(personalRecord.getEmail());
 		Assert.isNull(personalRecord.getPhone());
-		Assert.isNull(personalRecord.getLinkedInProfile());
 
 	}
 
@@ -64,7 +63,6 @@ public class PersonalRecordServiceTest extends AbstractTest {
 		personalRecord.setPhoto(photo);
 		personalRecord.setEmail(email);
 		personalRecord.setPhone(phone);
-		personalRecord.setLinkedInProfile(linkedInProfile);
 
 		saved = this.personalRecordService.save(personalRecord);
 

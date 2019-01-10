@@ -1,34 +1,39 @@
+
 package converters;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import repositories.SponsorshipRepository;
 import domain.Sponsorship;
 
 @Component
 @Transactional
-public class StringToSponsorshipConverter implements
-		Converter<String, Sponsorship> {
+public class StringToSponsorshipConverter implements Converter<String, Sponsorship> {
 
 	@Autowired
-	SponsorshipRepository sponsorshipRepository;
+	private SponsorshipRepository	repository;
+
 
 	@Override
-	public Sponsorship convert(final String text) {
-		Sponsorship result;
+	public Sponsorship convert(final String s) {
+		Sponsorship res;
 		int id;
 
 		try {
-			id = Integer.valueOf(text);
-			result = this.sponsorshipRepository.findOne(id);
-		} catch (final Throwable oops) {
-			throw new IllegalArgumentException(oops);
+			if (!StringUtils.isEmpty(s))
+				res = null;
+			else {
+				id = Integer.valueOf(s);
+				res = this.repository.findOne(id);
+			}
+		} catch (final Throwable t) {
+			throw new IllegalArgumentException(t);
 		}
-
-		return result;
+		return res;
 	}
 
 }

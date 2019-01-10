@@ -1,9 +1,11 @@
+
 package converters;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import repositories.FinderRepository;
 import domain.Finder;
@@ -13,22 +15,25 @@ import domain.Finder;
 public class StringToFinderConverter implements Converter<String, Finder> {
 
 	@Autowired
-	FinderRepository	finderRepository;
+	private FinderRepository	repository;
 
 
 	@Override
-	public Finder convert(final String text) {
-		Finder result;
+	public Finder convert(final String s) {
+		Finder res;
 		int id;
 
 		try {
-			id = Integer.valueOf(text);
-			result = this.finderRepository.findOne(id);
-		} catch (final Throwable oops) {
-			throw new IllegalArgumentException(oops);
+			if (StringUtils.isEmpty(s))
+				res = null;
+			else {
+				id = Integer.valueOf(s);
+				res = this.repository.findOne(id);
+			}
+		} catch (final Throwable t) {
+			throw new IllegalArgumentException(t);
 		}
-
-		return result;
+		return res;
 	}
 
 }

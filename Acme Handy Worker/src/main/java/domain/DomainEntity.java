@@ -25,14 +25,14 @@ import javax.persistence.Version;
 @Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
 public abstract class DomainEntity {
 
-	// Constructors -----------------------------------------------------------
+	// Constructors 
 
 	public DomainEntity() {
 		super();
 	}
 
 
-	// Identification ---------------------------------------------------------
+	// Identification 
 
 	private int	id;
 	private int	version;

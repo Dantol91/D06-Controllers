@@ -2,10 +2,12 @@
 package services;
 
 import java.util.Collection;
+import java.util.List;
+
+import javax.transaction.Transactional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
 import repositories.WarrantyRepository;
@@ -15,60 +17,61 @@ import domain.Warranty;
 @Transactional
 public class WarrantyService {
 
-	// Managed repository 
+	//Managed Repository
 
 	@Autowired
 	private WarrantyRepository	warrantyRepository;
 
+	// Supporting Service
 
-	// Supporting services 
+	@Autowired
+	private FixupTaskService	fixupTaskService;
 
-	// Constructors 
 
-	public WarrantyService() {
-		super();
+	public Warranty findOne(final Integer id) {
+		return this.warrantyRepository.findOne(id);
 	}
 
-	// Simple CRUD methods 
+	public List<Warranty> findAll(final Collection<Integer> ids) {
+		return this.warrantyRepository.findAll(ids);
+	}
+
+	public List<Warranty> findAll() {
+		return this.warrantyRepository.findAll();
+	}
 
 	public Warranty create() {
-		final Warranty w;
-
-		w = new Warranty();
-
-		return w;
+		final Warranty res = new Warranty();
+		res.setDraft(true);
+		return res;
 	}
 
-	public Warranty save(final Warranty warranty) {
-		Assert.notNull(warranty);
-		return this.warrantyRepository.save(warranty);
+	public Warranty save(final Warranty object) {
+		final Warranty warranty = object;
+		Assert.isTrue(warranty.getDraft());
+		if (warranty.getDraft() == true && object.getId() != 0)
+			Assert.isTrue(this.fixupTaskService.findByWarranty(object).isEmpty());
+		return this.warrantyRepository.save(object);
 	}
 
-	public Warranty findOne(final int warrantyId) {
-		Assert.isTrue(warrantyId != 0);
-
-		Warranty result;
-
-		result = this.warrantyRepository.findOne(warrantyId);
-
-		return result;
+	public Warranty saveDraft(final Warranty object) {
+		final Warranty warranty = object;
+		if (warranty.getDraft() == true && object.getId() != 0)
+			Assert.isTrue(this.fixupTaskService.findByWarranty(object).isEmpty());
+		return this.warrantyRepository.save(object);
 	}
 
-	public Collection<Warranty> findAll() {
-		Collection<Warranty> result;
-
-		result = this.warrantyRepository.findAll();
-		Assert.notNull(result);
-
-		return result;
+	public void delete(final Warranty object) {
+		final Warranty warranty = object;
+		Assert.isTrue(warranty.getDraft());
+		if (this.fixupTaskService.findByWarranty(object).isEmpty())
+			this.warrantyRepository.delete(object);
+		else
+			throw new IllegalArgumentException("No puedes borrar una garantía que tenga tareas");
 	}
 
-	public void delete(final Warranty warranty) {
-		Assert.notNull(warranty);
-
-		this.warrantyRepository.delete(warranty);
+	public Collection<Warranty> findWarrantyNotDraft() {
+		return this.warrantyRepository.findWarrantyNotDraft();
 	}
-
-	// Other Business Methods 
 
 }

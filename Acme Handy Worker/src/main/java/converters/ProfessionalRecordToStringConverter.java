@@ -1,23 +1,24 @@
+
 package converters;
+
+import javax.transaction.Transactional;
 
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 import domain.ProfessionalRecord;
 
 @Component
 @Transactional
-public class ProfessionalRecordToStringConverter implements Converter<ProfessionalRecord, String>{
-	
-	@Override
-	public String convert(final ProfessionalRecord professionalRecord) {
-		String result;
+public class ProfessionalRecordToStringConverter implements Converter<ProfessionalRecord, String> {
 
-		if (professionalRecord == null)
+	@Override
+	public String convert(final ProfessionalRecord t) {
+		String result;
+		if (t == null)
 			result = null;
 		else
-			result = String.valueOf(professionalRecord.getId());
+			result = String.valueOf(t.getId());
 
 		return result;
 	}

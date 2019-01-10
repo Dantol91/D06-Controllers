@@ -2,7 +2,6 @@
 package services;
 
 import java.util.Collection;
-import java.util.Random;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -10,117 +9,69 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
 import repositories.SponsorshipRepository;
-import domain.CreditCard;
+import security.LoginService;
 import domain.Sponsor;
 import domain.Sponsorship;
+import domain.Tutorial;
 
 @Service
 @Transactional
 public class SponsorshipService {
 
-	// Managed repository
+	//Managed Repository
 
 	@Autowired
 	private SponsorshipRepository	sponsorshipRepository;
 
-	// Supporting services
-
+	// Supporting Service
 	@Autowired
-	private AdministratorService	administratorService;
+	private SponsorService			sponsorService;
 	@Autowired
-	private ActorService			actorService;
+	private TutorialService			tutorialService;
 	@Autowired
-	private CreditCardService		creditCardService;
+	private ServiceUtils			serviceUtils;
 
-
-	// Constructor
-
-	public SponsorshipService() {
-		super();
-	}
 
 	// Simple CRUD methods
 
 	public Sponsorship create() {
-		Sponsorship result;
-		Sponsor s;
-		final CreditCard creditCard;
-
-		result = new Sponsorship();
-		s = (Sponsor) this.actorService.findByPrincipal();
-		creditCard = new CreditCard();
-
-		result.setSponsor(s);
-		result.setCreditCard(creditCard);
-		Assert.notNull(creditCard);
-
-		return result;
-	}
-
-	public Sponsorship save(final Sponsorship sponsorship) {
-		Assert.notNull(sponsorship);
-		Sponsorship result;
-		CreditCard ccSaved;
-
-		ccSaved = this.creditCardService.save(sponsorship.getCreditCard());
-
-		sponsorship.setCreditCard(ccSaved);
-		result = this.sponsorshipRepository.save(sponsorship);
-
-		//Comprobamos si es spam
-		this.administratorService.checkIsSpam(sponsorship.getBannerURL());
-
-		return result;
-	}
-
-	public void delete(final Sponsorship sponsorship) {
-		Assert.notNull(sponsorship);
-		Assert.isTrue(sponsorship.getId() != 0);
-		this.sponsorshipRepository.delete(sponsorship);
+		Sponsorship s;
+		s = new Sponsorship();
+		return s;
 	}
 
 	public Collection<Sponsorship> findAll() {
-		Collection<Sponsorship> result;
-		result = this.sponsorshipRepository.findAll();
-		Assert.notNull(result);
-		return result;
+		return this.sponsorshipRepository.findAll();
 	}
 
 	public Sponsorship findOne(final int sponsorshipId) {
-		Sponsorship result;
-		result = this.sponsorshipRepository.findOne(sponsorshipId);
-		return result;
+		return this.sponsorshipRepository.findOne(sponsorshipId);
 	}
 
-	public Sponsorship findOneToEdit(final int sponsorshipId) {
-		Sponsorship result;
-		result = this.sponsorshipRepository.findOne(sponsorshipId);
-		this.checkPrincipal(result);
-		return result;
-	}
-
-	//Other business methods
-
-	public void checkPrincipal(final Sponsorship s) {
-		Sponsor sponsor;
-
-		sponsor = (Sponsor) this.actorService.findByPrincipal();
-
-		Assert.isTrue(sponsor.getSponsorships().contains(s));
-	}
-
-	public Sponsorship randomSponsorship() {
-		Sponsorship sponsorship = null;
-
-		final int size = this.findAll().size();
-		final int item = new Random().nextInt(size);
-		int i = 0;
-		for (final Sponsorship s : this.findAll()) {
-			if (i == item)
-				sponsorship = s;
-			i++;
+	public Sponsorship save(final Sponsorship s) {
+		Sponsor sp;
+		if (s.getId() == 0) {
+			sp = this.sponsorService.findSponsorById(LoginService.getPrincipal().getId());
+			s.setSponsor(sp);
 		}
-		return sponsorship;
-	}
+		Assert.notNull(s);
 
+		return this.sponsorshipRepository.save(s);
+	}
+	public void delete(final Sponsorship s) {
+		Assert.notNull(s);
+		this.serviceUtils.checkAuthority("SPONSOR");
+		for (final Tutorial t : this.tutorialService.findTutorialsBySponsorship(s)) {
+			this.tutorialService.save(t);
+		}
+		this.sponsorshipRepository.delete(s);
+	}
+	
+	public Collection<Sponsorship> findBySponsor(Sponsor sponsor) {
+		Assert.notNull(sponsor);
+		Assert.isTrue(sponsor.getId() > 0);
+		Assert.notNull(this.sponsorshipRepository.findBySponsor(sponsor.getId()));
+		return this.sponsorshipRepository.findBySponsor(sponsor.getId());
+	}
+	
 }

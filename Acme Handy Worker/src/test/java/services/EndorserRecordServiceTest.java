@@ -36,8 +36,6 @@ public class EndorserRecordServiceTest extends AbstractTest {
 		Assert.isNull(endorserRecord.getFullName());
 		Assert.isNull(endorserRecord.getEmail());
 		Assert.isNull(endorserRecord.getPhone());
-		Assert.isNull(endorserRecord.getLinkedInProfile());
-		Assert.isNull(endorserRecord.getComment());
 
 	}
 
@@ -62,8 +60,6 @@ public class EndorserRecordServiceTest extends AbstractTest {
 		endorserRecord.setFullName(fullName);
 		endorserRecord.setEmail(email);
 		endorserRecord.setPhone(phone);
-		endorserRecord.setLinkedInProfile(linkedInProfile);
-		endorserRecord.setComment(comment);
 
 		saved = this.endorserRecordService.save(endorserRecord);
 

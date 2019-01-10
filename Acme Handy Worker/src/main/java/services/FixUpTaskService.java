@@ -2,308 +2,238 @@
 package services;
 
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
-import java.util.Random;
+import java.util.HashMap;
+import java.util.Map;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
-import repositories.FixUpTaskRepository;
+import repositories.FixupTaskRepository;
+import security.Authority;
+import security.LoginService;
 import domain.Application;
 import domain.Category;
+import domain.Complaint;
 import domain.Customer;
-import domain.FixUpTask;
+import domain.FixupTask;
+import domain.HandyWorker;
+import domain.Warranty;
 
 @Service
 @Transactional
-public class FixUpTaskService {
+public class FixupTaskService {
 
-	// Managed Repository
-
-	@Autowired
-	private FixUpTaskRepository		fixUpTaskRepository;
-
-	// Supporting Services
+	//Managed Repository
 
 	@Autowired
-	private ActorService			actorService;
+	private FixupTaskRepository	fixupTaskRepository;
+
+	// Supporting Service
 
 	@Autowired
-	private CustomerService			customerService;
-
+	private CategoryService		categoryService;
 	@Autowired
-	private CategoryService			categoryService;
-
+	private CustomerService		customerService;
 	@Autowired
-	private AdministratorService	administratorService;
+	private WarrantyService		warrantyService;
+	@Autowired
+	private ServiceUtils		serviceUtils;
+	@Autowired
+	private ActorService		actorService;
+	@Autowired
+	TickerService				ticketableService;
 
 
-	// Constructor
+	//
 
-	public FixUpTaskService() {
+	public FixupTaskService() {
 		super();
 	}
+	// Simple CRUD methods
 
-	// Simple CRUD Methods
+	public FixupTask create() {
+		final FixupTask fixupTask = new FixupTask();
 
-	public FixUpTask create() {
-		final FixUpTask f;
-		Collection<Application> apps;
+		final Collection<Application> applications = new ArrayList<>();
+		final Collection<Complaint> complaints = new ArrayList<>();
 
-		f = new FixUpTask();
-		apps = new ArrayList<>();
+		fixupTask.setApplications(applications);
+		fixupTask.setComplaints(complaints);
+		fixupTask.setMoment(new Date(System.currentTimeMillis() - 1000));
+		fixupTask.setCustomer((Customer) this.actorService.findOneByUserAccount(LoginService.getPrincipal()));
+		fixupTask.setTicker(this.ticketableService.createTicker());
+		fixupTask.setWarranty(new Warranty());
 
-		f.setApplications(apps);
-		f.setTicker(this.getTicker());
-
-		return f;
+		return fixupTask;
 	}
 
-	public FixUpTask save(final FixUpTask fixUpTask) {
-		Assert.notNull(fixUpTask);
-		Assert.isTrue(fixUpTask.getPublicationDate().after(new Date(System.currentTimeMillis() - 24 * 3600 * 1000l)));
-		Assert.isTrue(fixUpTask.getStartDate().after(new Date(System.currentTimeMillis())));
-		Assert.isTrue(fixUpTask.getEndDate().after(new Date(System.currentTimeMillis())));
-		Assert.isTrue(fixUpTask.getPublicationDate().before(fixUpTask.getStartDate()));
-		Assert.isTrue(fixUpTask.getPublicationDate().before(fixUpTask.getEndDate()));
-		Assert.isTrue(fixUpTask.getStartDate().before(fixUpTask.getEndDate()));
-
-		FixUpTask result;
-
-		result = this.fixUpTaskRepository.save(fixUpTask);
-
-		return result;
-
+	public Collection<FixupTask> findAll() {
+		Collection<FixupTask> ft;
+		ft = this.fixupTaskRepository.findAll();
+		return ft;
 	}
 
-	// C.10.2
-	public Collection<FixUpTask> findAll() {
-		Collection<FixUpTask> result;
-
-		result = this.fixUpTaskRepository.findAll();
-		Assert.notNull(result);
-
-		return result;
-	}
-
-	// C.10.2
-	public FixUpTask findOne(final int tripId) {
-		FixUpTask result;
-
-		result = this.fixUpTaskRepository.findOne(tripId);
-
-		return result;
-	}
-
-	public FixUpTask findOneToEdit(final int tripId) {
-		FixUpTask result;
-
-		result = this.fixUpTaskRepository.findOne(tripId);
-
-		//	this.checkPrincipal(result);
-
-		return result;
-	}
-
-	public void delete(final FixUpTask fixUpTask) {
-		Assert.notNull(fixUpTask);
-
-		this.fixUpTaskRepository.delete(fixUpTask);
-	}
-
-	// Other Business Methods
-
-	// B.38.5 Un Admin puede mostrar en el dashboard el ratio de fix-up tasks con complaint
-	public Double getComplaintFixUpTasks() {
-
-		return this.fixUpTaskRepository.getComplaintFixUpTasks();
+	public FixupTask findOne(final int fixupTaskId) {
+		FixupTask res;
+		res = this.fixupTaskRepository.findOne(fixupTaskId);
+		return res;
 
 	}
 
-	// Tickers se generan automaticamente, con el pattern: YYMMDD-XXXXXX, X es
-	// una letra en mayuscula
+	public FixupTask save(final FixupTask fixupTask) {
 
-	public String getTicker() {
-		String res = "";
-		final Calendar c = Calendar.getInstance();
+		Assert.notNull(fixupTask);
 
-		String day = Integer.toString(c.get(Calendar.DATE));
-		if (day.length() == 1)
-			day = "0" + day;
-		String month = Integer.toString(c.get(Calendar.MONTH) + 1); // +1 ya que Enero corresponde al valor 0
+		if (fixupTask.getId() == 0) {
+		} else {
+			this.serviceUtils.checkIdSave(fixupTask);
+			final FixupTask fBD;
+			Assert.isTrue(fixupTask.getId() > 0);
+			fBD = this.fixupTaskRepository.findOne(fixupTask.getId());
 
-		if (month.length() == 1)
-			month = "0" + month;
-		String year = Integer.toString(c.get(Calendar.YEAR));
+			fixupTask.setCustomer(fBD.getCustomer());
+		}
 
-		// Por el patron solo necesitamos las ultimas 2 cifras del anho
-		year = year.substring(2, 4);
+		FixupTask res;
+		res = this.fixupTaskRepository.save(fixupTask);
+		return res;
+	}
+	public void flush() {
+		this.fixupTaskRepository.flush();
+	}
+	public void delete(final FixupTask f) {
+		Assert.notNull(f);
+		//Assert.isTrue(p.getId() != 0);
+		this.fixupTaskRepository.delete(f);
+	}
 
-		// Aqui obtengo las 4 letras mayusculas
-		final Random r = new Random();
-		final String alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+	//Other methods
 
-		final int index1 = r.nextInt(alphabet.length());
-		final int index2 = r.nextInt(alphabet.length());
-		final int index3 = r.nextInt(alphabet.length());
-		final int index4 = r.nextInt(alphabet.length());
+	public Map<String, Double> appsStats() {
+		final Double[] statistics = this.fixupTaskRepository.appsStats();
+		final Map<String, Double> res = new HashMap<>();
 
-		res = year + month + day + "-" + alphabet.charAt(index1) + alphabet.charAt(index2) + alphabet.charAt(index3) + alphabet.charAt(index4);
-
-		// Compruebo que el ticker sea único
-		// Si existe algún ticker igual, vuelvo a calcularlo
-
-		for (final FixUpTask t : this.fixUpTaskRepository.findAll())
-			if (t.getTicker().equals(res))
-				res = this.getTicker();
+		res.put("MIN", statistics[0]);
+		res.put("MAX", statistics[1]);
+		res.put("AVG", statistics[2]);
+		res.put("STD", statistics[3]);
 		return res;
 	}
 
-	public Collection<FixUpTask> getFixUpTasksByCategory(final int categoryId) {
+	public Map<String, Double> maxFixupStaskStats() {
+		final Double[] statistics = this.fixupTaskRepository.maxFixupStaskStats();
+		final Map<String, Double> res = new HashMap<>();
 
-		return this.fixUpTaskRepository.getFixUpTasksByCategory(categoryId);
-	}
+		res.put("MIN", statistics[0]);
+		res.put("MAX", statistics[1]);
+		res.put("AVG", statistics[2]);
+		res.put("STD", statistics[3]);
 
-	public Integer getAcceptedApplicationsByHandyWorkerId(final int handyWorkerId, final int fixUpTaskId) {
-
-		return this.fixUpTaskRepository.getAcceptedApplicationsByHandyWorkerId(handyWorkerId, fixUpTaskId);
-	}
-
-	// C.11.2 Buscar fixUpTasks por palabra clave, que debe estar contenida en
-	// su ticker, description o address
-
-	public Collection<FixUpTask> getFixUpTasksByKeyWord(final String keyWord) {
-		Assert.notNull(keyWord);
-
-		Collection<FixUpTask> res;
-		res = this.fixUpTaskRepository.getFixUpTasksByKeyWord(keyWord);
 		return res;
 	}
 
-	// C.12.5 Un Administrador muestra un Dashboard con estas estadisticas: 
+	public Map<String, Double> getRatioFixupTasksWithComplaints() {
+		final Double ratio = this.fixupTaskRepository.ratiofixupComplaint();
+		final Map<String, Double> res = new HashMap<>();
 
-	//The average, the minimum, the maximum, and the standard deviation of the 
-	//number of fix-up tasks per user.
-	public Double[] computeAvgMinMaxStdvPerUser() {
+		res.put("Ratio", ratio);
 
-		return this.fixUpTaskRepository.computeAvgMinMaxStdvPerUser();
+		return res;
 	}
 
-	//The average, the minimum, the maximum, and the standard deviation 
-	//of the maximum price of the fix-up tasks.
+	public Map<String, Double> fixupComplaintsStats() {
+		final Double[] statistics = this.fixupTaskRepository.fixupComplaintsStats();
+		final Map<String, Double> res = new HashMap<>();
+		res.put("MIN", statistics[0]);
+		res.put("MAX", statistics[1]);
+		res.put("AVG", statistics[2]);
+		res.put("STD", statistics[3]);
 
-	public Double[] computeAvgMinMaxStdvPerMaxPrice() {
-
-		return this.fixUpTaskRepository.computeAvgMinMaxStdvPerMaxPrice();
-	}
-
-	public Collection<FixUpTask> getNotPublishedFixUpTaks() {
-		return this.fixUpTaskRepository.getNotPublishedFixUpTaks();
-	}
-
-	public Collection<FixUpTask> getHandyWorkerApplicationFixUpTasks(final int handyWorkerId) {
-		return this.fixUpTaskRepository.getHandyWorkerApplicationFixUpTasks(handyWorkerId);
-	}
-
-	public Collection<FixUpTask> getVisibleFixUpTasks() {
-		return this.fixUpTaskRepository.getVisibleFixUpTasks();
-	}
-
-	public Collection<FixUpTask> getWithoutApplicationFixUpTasks(final int handyWorkerId) {
-		final Collection<FixUpTask> handyWorkerFixUpTasks;
-		Collection<FixUpTask> allFixUpTasks;
-
-		handyWorkerFixUpTasks = this.fixUpTaskRepository.getHandyWorkerApplicationFixUpTasks(handyWorkerId);
-		allFixUpTasks = this.fixUpTaskRepository.getVisibleFixUpTasks();
-
-		allFixUpTasks.removeAll(handyWorkerFixUpTasks);
-
-		return allFixUpTasks;
-	}
-
-	public Boolean checkFixUpTaskIsPublished(final FixUpTask fixUpTask) {
-		Boolean isPublished = false;
-
-		if (fixUpTask.getPublicationDate().before(new Date(System.currentTimeMillis())))
-			isPublished = true;
-
-		return isPublished;
-	}
-
-	public Collection<FixUpTask> getEndedFixUpTasks() {
-
-		return this.fixUpTaskRepository.getEndedFixUpTasks();
+		return res;
 
 	}
-	public Collection<FixUpTask> getVisibleFixUpTasksByCategory(final int categoryId) {
 
-		return this.fixUpTaskRepository.getVisibleFixUpTasksByCategory(categoryId);
+	public Collection<FixupTask> findByCategory(final Category category) {
+		Assert.notNull(category);
+		Assert.isTrue(category.getId() > 0);
+		Assert.notNull(this.categoryService.findOne(category.getId()));
+		return this.fixupTaskRepository.findByCategoryId(category.getId());
 	}
 
-	public Collection<FixUpTask> showAllFixUpTaskByCategory(final int categoryId, final Collection<FixUpTask> result) {
-
-		Category category;
-
-		category = this.categoryService.findOne(categoryId);
-
-		if (!category.getChildCategories().isEmpty())
-			for (final Category c : category.getChildCategories())
-				this.showAllFixUpTaskByCategory(c.getId(), result);
-
-		//	result.addAll(this.getVisibleFixUpTasksByCategory(categoryId));
-
-		return result;
+	public Collection<FixupTask> findByCustomer(final Customer customer) {
+		Assert.notNull(customer);
+		Assert.isTrue(customer.getId() > 0);
+		Assert.notNull(this.customerService.findOne(customer.getId()));
+		return this.fixupTaskRepository.findByCustomerId(customer.getId());
 	}
 
-	public FixUpTask getFixUpTaskByApplicationId(final int applicationId) {
-		return this.fixUpTaskRepository.getFixUpTaskByApplicationId(applicationId);
+	public Collection<FixupTask> findByWarranty(final Warranty warranty) {
+		Assert.notNull(warranty);
+		Assert.isTrue(warranty.getId() > 0);
+		Assert.notNull(this.warrantyService.findOne(warranty.getId()));
+		return this.fixupTaskRepository.findByWarrantyId(warranty.getId());
 	}
 
-	public Collection<FixUpTask> getFixUpTasksByCustomerId(final int customerId) {
-		return this.fixUpTaskRepository.getFixUpTasksByCustomerId(customerId);
+	public Collection<FixupTask> findAcceptedFixupTasks() {
+		return this.fixupTaskRepository.findAcceptedFixupTasks();
 	}
 
-	public Collection<FixUpTask> getFixUpTasksHandyWorkerApplication(final int handyWorkerId) {
-		return this.fixUpTaskRepository.getFixUpTasksHandyWorkerApplication(handyWorkerId);
+	public Collection<FixupTask> findAcceptedFixupTasksByHandyWorker(final HandyWorker h) {
+		final HandyWorker handyWorker = (HandyWorker) this.serviceUtils.checkObject(h);
+		return this.fixupTaskRepository.findAcceptedFixupTasksByHandyWorker(handyWorker.getId());
 	}
 
-	public void checkPrincipal(final FixUpTask f) {
-		Customer c;
-
-		c = (Customer) this.actorService.findByPrincipal();
-
-		Assert.isTrue(c.getFixUpTasks().contains(f));
+	public Collection<FixupTask> findFixupTasksNotAppliedByHandyWorker(final HandyWorker h) {
+		final HandyWorker handyWorker = (HandyWorker) this.serviceUtils.checkObject(h);
+		return this.fixupTaskRepository.findFixupTasksNotAppliedByHandyWorker(handyWorker.getId());
 	}
 
-	public FixUpTask saveFromCreate(final FixUpTask fixUpTask) {
-		Assert.notNull(fixUpTask);
-		Assert.isTrue(fixUpTask.getPublicationDate().after(new Date(System.currentTimeMillis() - 24 * 3600 * 1000l)), "message.error.publicationDate");
-		Assert.isTrue(fixUpTask.getStartDate().after(new Date(System.currentTimeMillis())), "message.error.startDate");
-		Assert.isTrue(fixUpTask.getEndDate().after(new Date(System.currentTimeMillis())), "message.error.endDate");
-		Assert.isTrue(fixUpTask.getPublicationDate().before(fixUpTask.getStartDate()), "message.error.startDatePubliDate");
-		Assert.isTrue(fixUpTask.getPublicationDate().before(fixUpTask.getEndDate()), "message.error.endDatePubliDate");
-		Assert.isTrue(fixUpTask.getStartDate().before(fixUpTask.getEndDate()), "message.error.startDateEndDate");
-
-		FixUpTask result;
-		final Customer c;
-		Collection<FixUpTask> fixUpTasks;
-
-		c = (Customer) this.actorService.findByPrincipal();
-		fixUpTasks = c.getFixUpTasks();
-
-		result = this.fixUpTaskRepository.save(fixUpTask);
-		fixUpTasks.add(result);
-		c.setFixUpTasks(fixUpTasks);
-		this.customerService.save(c);
-
-		// Comprobamos si es spam
-		this.administratorService.checkIsSpam(fixUpTask.getDescription());
-
-		return result;
+	public Collection<FixupTask> search(final String keyword, final Category category, final Warranty warranty, final Double minPrice, final Double maxPrice, final Date minDate, final Date maxDate) {
+		final Collection<FixupTask> res = this.findAll();
+		this.serviceUtils.checkAuthority(Authority.HANDYWORKER);
+		System.out.println(keyword);
+		System.out.println(category);
+		System.out.println(warranty);
+		System.out.println(minDate);
+		System.out.println(maxDate);
+		System.out.println(minPrice);
+		System.out.println(maxPrice);
+		if (!StringUtils.isEmpty(keyword)) {
+			final Collection<FixupTask> keywordRes = this.fixupTaskRepository.findByKeyword(keyword);
+			res.retainAll(keywordRes);
+		}
+		if (category != null) {
+			this.serviceUtils.checkObject(category);
+			final Collection<FixupTask> categoryRes = this.fixupTaskRepository.findByCategoryId(category.getId());
+			res.retainAll(categoryRes);
+		}
+		if (warranty != null) {
+			this.serviceUtils.checkObject(warranty);
+			final Collection<FixupTask> warrantyRes = this.fixupTaskRepository.findByWarrantyIdAndNotDraft(warranty.getId());
+			res.retainAll(warrantyRes);
+		}
+		if (minPrice != null) {
+			final Collection<FixupTask> minPriceRes = this.fixupTaskRepository.findByMoreThanMinPrice(minPrice);
+			res.retainAll(minPriceRes);
+		}
+		if (maxPrice != null) {
+			final Collection<FixupTask> maxPriceRes = this.fixupTaskRepository.findByLessThanMaxPrice(maxPrice);
+			res.retainAll(maxPriceRes);
+		}
+		if (minDate != null) {
+			final Collection<FixupTask> minDateRes = this.fixupTaskRepository.findByAfterMinDate(minDate);
+			res.retainAll(minDateRes);
+		}
+		if (maxDate != null) {
+			final Collection<FixupTask> maxDateRes = this.fixupTaskRepository.findByBeforeMaxDate(maxDate);
+			res.retainAll(maxDateRes);
+		}
+		System.out.println(res);
+		return res;
 	}
-
 }

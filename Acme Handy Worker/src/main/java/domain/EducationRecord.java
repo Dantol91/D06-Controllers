@@ -6,8 +6,7 @@ import java.util.Date;
 import javax.persistence.Access;
 import javax.persistence.AccessType;
 import javax.persistence.Entity;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
+import javax.persistence.ManyToOne;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Past;
@@ -20,24 +19,29 @@ import org.springframework.format.annotation.DateTimeFormat;
 @Access(AccessType.PROPERTY)
 public class EducationRecord extends DomainEntity {
 
-	// Constructor
+	// Constructors
 
 	public EducationRecord() {
 		super();
 	}
 
 
-	// Attributes
+	// Attributes 
 
-	private String	diplomaTitle;
-	private Date	startDate;
-	private Date	endDate;
-	private String	institution;
-	private String	attachmentLink;
-	private String	comment;
+	private String		diplomaTitle;
+	private Date		start;
+	private Date		end;
+	private String		institution;
+	private String		attachment;
+	private String		comments;
+
+	// Relationships
+
+	private Curriculum	curriculum;
 
 
 	@NotBlank
+	@NotNull
 	public String getDiplomaTitle() {
 		return this.diplomaTitle;
 	}
@@ -49,26 +53,25 @@ public class EducationRecord extends DomainEntity {
 	@Past
 	@NotNull
 	@DateTimeFormat(pattern = "dd/MM/yyyy")
-	public Date getStartDate() {
-		return this.startDate;
+	public Date getStart() {
+		return this.start;
 	}
 
-	public void setStartDate(final Date startDate) {
-		this.startDate = startDate;
+	public void setStart(final Date start) {
+		this.start = start;
 	}
 
-	@Valid
-	@Temporal(TemporalType.DATE)
 	@DateTimeFormat(pattern = "dd/MM/yyyy")
-	public Date getEndDate() {
-		return this.endDate;
+	public Date getEnd() {
+		return this.end;
 	}
 
-	public void setEndDate(final Date endDate) {
-		this.endDate = endDate;
+	public void setEnd(final Date end) {
+		this.end = end;
 	}
 
 	@NotBlank
+	@NotNull
 	public String getInstitution() {
 		return this.institution;
 	}
@@ -78,22 +81,30 @@ public class EducationRecord extends DomainEntity {
 	}
 
 	@URL
-	public String getAttachmentLink() {
-		return this.attachmentLink;
+	public String getAttachment() {
+		return this.attachment;
 	}
 
-	public void setAttachmentLink(final String attachmentLink) {
-		this.attachmentLink = attachmentLink;
+	public void setAttachment(final String attachment) {
+		this.attachment = attachment;
 	}
 
-	public String getComment() {
-		return this.comment;
+	public String getComments() {
+		return this.comments;
 	}
 
-	public void setComment(final String comment) {
-		this.comment = comment;
+	public void setComments(final String comments) {
+		this.comments = comments;
 	}
 
-	// Relationships
+	@Valid
+	@ManyToOne(optional = false)
+	public Curriculum getCurriculum() {
+		return this.curriculum;
+	}
+
+	public void setCurriculum(final Curriculum curriculum) {
+		this.curriculum = curriculum;
+	}
 
 }

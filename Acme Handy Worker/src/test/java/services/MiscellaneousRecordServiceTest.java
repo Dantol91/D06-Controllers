@@ -34,8 +34,6 @@ public class MiscellaneousRecordServiceTest extends AbstractTest {
 
 		Assert.notNull(miscellaneousRecord);
 		Assert.isNull(miscellaneousRecord.getTitle());
-		Assert.isNull(miscellaneousRecord.getAttachmentLink());
-		Assert.isNull(miscellaneousRecord.getComment());
 
 	}
 
@@ -54,8 +52,6 @@ public class MiscellaneousRecordServiceTest extends AbstractTest {
 		comments = "comment";
 
 		miscellaneousRecord.setTitle(title);
-		miscellaneousRecord.setAttachmentLink(attachment);
-		miscellaneousRecord.setComment(comments);
 
 		saved = this.miscellaneousRecordService.save(miscellaneousRecord);
 

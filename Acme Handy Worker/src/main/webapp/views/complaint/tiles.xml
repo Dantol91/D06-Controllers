@@ -1,5 +1,14 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 
+<!-- 
+ * tiles.xml
+ *
+ * Copyright (C) 2018 Universidad de Sevilla
+ * 
+ * The use of this project is hereby constrained to the conditions of the 
+ * TDG Licence, a copy of which you may download from 
+ * http://www.tdg-seville.info/License.html
+ -->
 
 <!DOCTYPE tiles-definitions PUBLIC
        "-//Apache Software Foundation//DTD Tiles Configuration 2.0//EN"
@@ -7,19 +16,18 @@
        
 <tiles-definitions>
 
-	<definition name="complaint/list" extends="master.page">	
-		<put-attribute name="title" value="Complaints list" />
-		<put-attribute name="body" value="/views/complaint/list.jsp" />
+	<definition name="complaint/create" extends="master.page">	
+		<put-attribute name="title" value="Create complaint" />
+		<put-attribute name="body" value="/views/complaint/create.jsp" />
 	</definition>
 	
 	<definition name="complaint/display" extends="master.page">	
-		<put-attribute name="title" value="Complaint details" />
+		<put-attribute name="title" value="Display complaint" />
 		<put-attribute name="body" value="/views/complaint/display.jsp" />
 	</definition>
 	
-	<definition name="complaint/edit" extends="master.page">	
-		<put-attribute name="title" value="Complaint edition" />
-		<put-attribute name="body" value="/views/complaint/edit.jsp" />
+	<definition name="complaint/list" extends="master.page">	
+		<put-attribute name="title" value="List complaints" />
+		<put-attribute name="body" value="/views/complaint/list.jsp" />
 	</definition>
-	
 </tiles-definitions>

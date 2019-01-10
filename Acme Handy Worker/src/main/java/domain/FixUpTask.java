@@ -6,63 +6,86 @@ import java.util.Date;
 
 import javax.persistence.Access;
 import javax.persistence.AccessType;
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
 import javax.validation.Valid;
+import javax.validation.constraints.Digits;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Pattern;
+import javax.validation.constraints.Past;
 
 import org.hibernate.validator.constraints.NotBlank;
 import org.springframework.format.annotation.DateTimeFormat;
 
 @Entity
 @Access(AccessType.PROPERTY)
-public class FixUpTask extends DomainEntity {
+public class FixupTask extends Ticker {
 
 	// Constructors
 
-	public FixUpTask() {
+	public FixupTask() {
 		super();
 	}
 
 
-	// Attributes
+	// Attributes 
 
-	private String	ticker;
-	private Date	publicationDate;
-	private String	description;
-	private String	address;
-	private Double	maxPrice;
-	private Date	startDate;
-	private Date	endDate;
+	private Date					moment;
+	private String					description;
+	private String					address;
+	private double					maximumPrice;
+	private Date					start;
+	private Date					end;
+
+	// Relationships
+
+	private Customer				customer;
+	private Category				category;
+	private Warranty				warranty;
+	private Collection<Application>	applications;
+	private Collection<Complaint>	complaints;
 
 
-	@NotBlank
-	@Column(unique = true)
-	@Pattern(regexp = "(^\\d\\d[0-1]\\d[0-3]\\d[-]\\w{4})$")
-	public String getTicker() {
-		return this.ticker;
+	@Valid
+	@ManyToOne(optional = false)
+	public Customer getCustomer() {
+		return this.customer;
 	}
 
-	public void setTicker(final String ticker) {
-		this.ticker = ticker;
+	public void setCustomer(final Customer customer) {
+		this.customer = customer;
 	}
 
+	@Valid
+	@ManyToOne(optional = false)
+	public Warranty getWarranty() {
+		return this.warranty;
+	}
+
+	public void setWarranty(final Warranty warranty) {
+		this.warranty = warranty;
+	}
+
+	@Valid
+	@ManyToOne(optional = false)
+	public Category getCategory() {
+		return this.category;
+	}
+
+	public void setCategory(final Category category) {
+		this.category = category;
+	}
+
+	@Past
 	@NotNull
-	@Temporal(TemporalType.DATE)
 	@DateTimeFormat(pattern = "dd/MM/yyyy")
-	public Date getPublicationDate() {
-		return this.publicationDate;
+	public Date getMoment() {
+		return this.moment;
 	}
 
-	public void setPublicationDate(final Date publicationDate) {
-		this.publicationDate = publicationDate;
+	public void setMoment(final Date moment) {
+		this.moment = moment;
 	}
 
 	@NotBlank
@@ -83,107 +106,52 @@ public class FixUpTask extends DomainEntity {
 		this.address = address;
 	}
 
-	@Min(0)
-	public Double getMaxPrice() {
-		return this.maxPrice;
+	@Digits(fraction = 2, integer = 100)
+	@Min(value = 0)
+	public double getMaximumPrice() {
+		return this.maximumPrice;
 	}
 
-	public void setMaxPrice(final Double maxPrice) {
-		this.maxPrice = maxPrice;
-	}
-
-	@NotNull
-	@Temporal(TemporalType.DATE)
-	@DateTimeFormat(pattern = "dd/MM/yyyy")
-	public Date getStartDate() {
-		return this.startDate;
-	}
-
-	public void setStartDate(final Date startDate) {
-		this.startDate = startDate;
+	public void setMaximumPrice(final double maximumPrice) {
+		this.maximumPrice = maximumPrice;
 	}
 
 	@NotNull
-	@Temporal(TemporalType.DATE)
 	@DateTimeFormat(pattern = "dd/MM/yyyy")
-	public Date getEndDate() {
-		return this.endDate;
+	public Date getStart() {
+		return this.start;
 	}
 
-	public void setEndDate(final Date endDate) {
-		this.endDate = endDate;
+	public void setStart(final Date start) {
+		this.start = start;
 	}
 
+	@NotNull
+	@DateTimeFormat(pattern = "dd/MM/yyyy")
+	public Date getEnd() {
+		return this.end;
+	}
 
-	// Relationships
-
-	private Collection<Application>	applications;
-	private Customer				customer;
-	private Collection<Phase>		phases;
-	private Warranty				warranty;
-	private Category				category;
-	private Collection<Complaint>	complaints;
-
+	public void setEnd(final Date end) {
+		this.end = end;
+	}
 
 	@Valid
-	@OneToMany(mappedBy = "fixUpTask")
+	@NotNull
+	@OneToMany(mappedBy = "fixupTask")
 	public Collection<Application> getApplications() {
 		return this.applications;
 	}
-
 	public void setApplications(final Collection<Application> applications) {
 		this.applications = applications;
 	}
 
+	@Valid
 	@NotNull
-	@Valid
-	@ManyToOne(optional = false)
-	public Customer getCustomer() {
-		return this.customer;
-	}
-
-	public void setCustomer(final Customer customer) {
-		this.customer = customer;
-	}
-
-	@Valid
-	@OneToMany(cascade = CascadeType.ALL)
-	public Collection<Phase> getPhases() {
-		return this.phases;
-	}
-
-	public void setPhases(final Collection<Phase> phases) {
-		this.phases = phases;
-	}
-
-	@NotNull
-	@Valid
-	@ManyToOne(optional = false)
-	public Warranty getWarranty() {
-		return this.warranty;
-	}
-
-	public void setWarranty(final Warranty warranty) {
-		this.warranty = warranty;
-	}
-
-	@NotNull
-	@Valid
-	@ManyToOne(optional = false)
-	public Category getCategory() {
-		return this.category;
-	}
-
-	public void setCategory(final Category category) {
-		this.category = category;
-	}
-
-	@Valid
-	@OneToMany(mappedBy = "fixUpTask")
+	@OneToMany(mappedBy = "fixuptask")
 	public Collection<Complaint> getComplaints() {
 		return this.complaints;
 	}
-
 	public void setComplaints(final Collection<Complaint> complaints) {
 		this.complaints = complaints;
 	}

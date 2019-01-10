@@ -7,47 +7,55 @@ import java.util.Date;
 import javax.persistence.Access;
 import javax.persistence.AccessType;
 import javax.persistence.CascadeType;
+import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
+import javax.persistence.ManyToMany;
+import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Past;
 
 import org.hibernate.validator.constraints.NotBlank;
-import org.hibernate.validator.constraints.NotEmpty;
-import org.hibernate.validator.constraints.URL;
 import org.springframework.format.annotation.DateTimeFormat;
 
 @Entity
 @Access(AccessType.PROPERTY)
 public class Tutorial extends DomainEntity {
 
-	// Constructor
+	// Constructors
 
 	public Tutorial() {
 		super();
 	}
 
 
-	// Attributes
+	// Attributes 
 
-	private String	title;
-	private Date	moment;
-	private String	summary;
-	private String	picture;
+	private Date					moment;
+	private String					title;
+	private String					summary;
+	private Collection<Url>			pictures;
+
+	// Relationships
+
+	private HandyWorker				handyWorker;
+	private Collection<Section>		sections;
+	private Collection<Sponsorship>	sponsorships;
 
 
-	@NotBlank
-	public String getTitle() {
-		return this.title;
+	@Valid
+	@ManyToMany
+	public Collection<Sponsorship> getSponsorships() {
+		return this.sponsorships;
 	}
 
-	public void setTitle(final String title) {
-		this.title = title;
+	public void setSponsorships(final Collection<Sponsorship> sponsorships) {
+		this.sponsorships = sponsorships;
 	}
 
-	@Past
 	@NotNull
+	@Past
 	@DateTimeFormat(pattern = "dd/MM/yyyy")
 	public Date getMoment() {
 		return this.moment;
@@ -58,6 +66,17 @@ public class Tutorial extends DomainEntity {
 	}
 
 	@NotBlank
+	@NotNull
+	public String getTitle() {
+		return this.title;
+	}
+
+	public void setTitle(final String title) {
+		this.title = title;
+	}
+
+	@NotBlank
+	@NotNull
 	public String getSummary() {
 		return this.summary;
 	}
@@ -66,35 +85,30 @@ public class Tutorial extends DomainEntity {
 		this.summary = summary;
 	}
 
-	@URL
-	public String getPicture() {
-		return this.picture;
-	}
-
-	public void setPicture(final String picture) {
-		this.picture = picture;
-	}
-
-
-	// Relationships
-
-	private Collection<Sponsorship>	sponsorships;
-	private Collection<Section>		sections;
-
-
 	@NotNull
-	@OneToMany
-	public Collection<Sponsorship> getSponsorships() {
-		return this.sponsorships;
+	@ElementCollection
+	public Collection<Url> getPictures() {
+		return this.pictures;
 	}
 
-	public void setSponsorships(final Collection<Sponsorship> sponsorships) {
-		this.sponsorships = sponsorships;
+	public void setPictures(final Collection<Url> pictures) {
+		this.pictures = pictures;
 	}
 
-	@NotEmpty
 	@Valid
-	@OneToMany(cascade = CascadeType.ALL)
+	@ManyToOne(optional = false)
+	public HandyWorker getHandyWorker() {
+		return this.handyWorker;
+
+	}
+
+	public void setHandyWorker(final HandyWorker handyWorker) {
+		this.handyWorker = handyWorker;
+	}
+
+	@Valid
+	@OneToMany(mappedBy = "tutorial", cascade = CascadeType.ALL)
+	@NotNull
 	public Collection<Section> getSections() {
 		return this.sections;
 	}

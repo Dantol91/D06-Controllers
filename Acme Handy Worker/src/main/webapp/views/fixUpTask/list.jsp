@@ -1,3 +1,13 @@
+<%--
+ * list.jsp
+ *
+ * Copyright (C) 2018 Universidad de Sevilla
+ * 
+ * The use of this project is hereby constrained to the conditions of the 
+ * TDG Licence, a copy of which you may download from 
+ * http://www.tdg-seville.info/License.html
+ --%>
+
 <%@page language="java" contentType="text/html; charset=ISO-8859-1"
 	pageEncoding="ISO-8859-1"%>
 
@@ -10,93 +20,135 @@
 	uri="http://www.springframework.org/security/tags"%>
 <%@taglib prefix="display" uri="http://displaytag.sf.net"%>
 
-<style type="text/css">
-
-.links{font-size: 30px}
-.current{color: blue;}
-
-</style>
-
 <!-- Listing grid -->
 
-<jstl:if test="${fromFinder eq true}">
-<jstl:set var="tarea" value="100"/>
-</jstl:if>
+<%
 
-<display:table class="displaytag" keepStatus="true" name="visiblefixUpTasks" pagesize="${tarea}"
-	requestURI="${requestURI}" id="row">
+String languageValue;
+try{
+Cookie[] cookies = request.getCookies();
+Cookie languageCookie = null;
+for(Cookie c : cookies) {
+	if(c.getName().equals("language")) {
+		languageCookie = c;
+	}
+}
 
-	<!-- Action links -->
+languageValue = languageCookie.getValue();}
+catch(NullPointerException e){
+	languageValue = "en";	
+}
 
-	<!-- Attributes -->
+%>
 
-	<!-- SE GUARDA SI ES CUSTOMER PARA EL DISPLAY -->
-	<security:authorize access="hasRole('CUSTOMER')" var="iscustomer" />	
 
-	<spring:message code="fixUpTask.ticker" var="tickerHeader" />
-	<display:column property="ticker" title="${tickerHeader}" />
+
+<security:authorize access="hasRole('HANDYWORKER')">
+<fieldset><legend><spring:message code="fixuptask.search" /></legend>
+
+	<form action="fixupTask/handyworker/search.do" method="get">
+		<label for="keyword"><spring:message code="search.keyword" /></label>
+		<input type="text" id="keyword" name="keyword" /><br>
+		<label for="categoryId"><spring:message code="search.category" /></label>
+		<select id="categoryId" name="categoryId">
+			<option value="0">-----</option>
+			<jstl:forEach items="${categories}" var="category">
+				<% if(languageValue.equals("en")) { %>
+					<option value="${category.id}"><jstl:out value="${category.nameEnglish}" /></option>
+				<% } else if(languageValue.equals("es")) { %>
+					<option value="${category.id}"><jstl:out value="${category.nameSpanish}" /></option>
+				<% } %>
+			</jstl:forEach>
+		</select><br>
+		<label for="warrantyId"><spring:message code="search.warranty" /></label>
+		<select id="warrantyId" name="warrantyId">
+			<option value="0">-----</option>
+			<jstl:forEach items="${warranties}" var="warranty">
+				<option value="${warranty.id}"><jstl:out value="${warranty.title}" /></option>
+			</jstl:forEach>
+		</select><br>
+		<label for="minPrice"><spring:message code="search.minprice" /></label>
+		<input type="number" id="minPrice" name="minPrice" min="0" /><br>
+		<label for="maxPrice"><spring:message code="search.maxprice" /></label>
+		<input type="number" id="maxPrice" name="maxPrice" min="0" /><br>
+		<label for="minDate"><spring:message code="search.mindate" /></label>
+		<input type="date" id="minDate" name="minDate" placeholder="YYYY-MM-DD" /><br>
+		<label for="maxDate"><spring:message code="search.maxdate" /></label>
+		<input type="date" id="maxDate" name="maxDate" placeholder="YYYY-MM-DD" /><br>
+		
+		<input type="submit" value="<spring:message code="search.search" />" />
+		
+	</form>
 	
-	<spring:message code="fixUpTask.description" var="descriptionHeader" />
-	<display:column property="description" title="${descriptionHeader}" /> 
-
-
-	<%--Se guarda el formato del precio--%>
-	<spring:message code="master.page.maxPrice.format" var="maxPriceFormat" />
-
-	<spring:message code="fixUpTask.maxPrice" var="maxPriceHeader" />
-	<spring:message code="master.page.maxPrice.format" var="maxPriceFormat" />
-	<display:column property="maxPrice" title="${maxPriceHeader}"
-		format="${maxPriceFormat}" />
 	
-	<spring:message code="fixUpTask.publicationDate" var="publicationDateHeader" />
-	<display:column property="publicationDate" title="${publicationDateHeader}" format="{0,date,dd/MM/yyyy HH:mm}" /> --%>
-
-	<spring:message code="fixUpTask.startDate" var="startDateHeader" />
-	<spring:message code="master.page.date.format" var="dateFormat" />
-	<display:column property="startDate" title="${startDateHeader}"
-		format="{0,date,${dateFormat}}" />
-
-	<spring:message code="fixUpTask.endDate" var="endDateHeader" />
-	<spring:message code="master.page.date.format" var="dateFormat" />
-	<display:column property="endDate" title="${endDateHeader}"
-		format="{0,date,${dateFormat}}" />
-
 	
+</fieldset>
+</security:authorize>
 
-	<display:column>
-		<%-- TODO EL MUNDO PUEDE VER LOS DETALLES DE UNA FIXUPTASK PERO CUSTOMER TIENE OTRA VISTA --%>
-		<jstl:choose>
-			<jstl:when test="${isCustomer}">
-				<a
-					href="fixUpTask/customer/display.do?fixUpTaskId=<jstl:out value="${row.getId()}"/>"><spring:message
-						code="fixUpTask.display" /></a>
-				<br />
-			</jstl:when>
-			<jstl:otherwise>
-				<a href="fixUpTask/display.do?fixUpTaskId=<jstl:out value="${row.getId()}"/>"><spring:message
-						code="fixUpTask.display" /></a>
-				<br />
-			</jstl:otherwise>
-		</jstl:choose>
+<display:table pagesize="5" class="displaytag" keepStatus="true"
+	name="fixupTasks" requestURI="${requestURI}" id="row">
 
-		<%-- LOS HANDYWORKERS PUEDEN APLICAR A UNA FIXUPTASK --%>
-		<security:authorize access="hasRole('HANDYWORKER')">
-		<a href="application/handyWorker/create.do?fixUpTaskId=<jstl:out value="${row.getId()}"/>"><spring:message code="fixUpTask.apply"/></a><br/>
-		</security:authorize> 
 
-	 
-		<%-- LOS CUSTOMER EDITAN FIXUPTAKS --%>
-		<security:authorize access="hasRole('CUSTOMER')">
-		<a href ="fixUpTask/customer/edit.do?fixUpTaskId=<jstl:out value="${row.getId()}"/>"><spring:message code="fixUpTask.edit" /></a>
-		</security:authorize>
+	<security:authorize access="hasRole('CUSTOMER')">
+		<display:column>
+			<a href="fixupTask/customer/edit.do?fixupTaskId=${row.id}"> <spring:message
+					code="fixupTask.edit" />
+			</a>
+			
+		</display:column>
+	</security:authorize>
+	
+		<display:column>
+			<a href="fixupTask/endorsable/display.do?fixupTaskId=${row.id}"> <spring:message
+					code="customer.display" />
+			</a>
+		</display:column>
+		
+		<display:column>
+			<a href="application/customer/list.do?fixupTaskId=${row.id}"> <spring:message
+					code="application.list" />
+			</a>
+		</display:column>
+
+
+	<display:column property="ticker" titleKey="fixupTask.ticker"
+		sortable="false" />
+
+	<display:column property="description" titleKey="fixupTask.description"
+		sortable="false" />
+
+	<display:column property="address" titleKey="fixupTask.address"
+		sortable="false" />
+
+	<display:column property="maximumPrice"
+		titleKey="fixupTask.maximumPrice" sortable="false" />
+
+	<display:column  titleKey="fixupTask.category" sortable="false" >
+		<% if(languageValue.equals("en")) { %>
+			<jstl:out value="${row.category.nameEnglish}" />
+		<% } else if(languageValue.equals("es")) { %>
+			<jstl:out value="${row.category.nameSpanish}" />
+		<% } %>
 	</display:column>
+
+	<display:column property="warranty.title" titleKey="fixupTask.warranty"
+		sortable="false" />
+
+	<display:column property="start" titleKey="fixupTask.start"
+		sortable="false" format="{0,date,dd/MM/yyyy HH:mm}" />
+
+	<display:column property="end" titleKey="fixupTask.end" sortable="false"
+		format="{0,date,dd/MM/yyyy HH:mm}" />
+
 
 </display:table>
 
-
 <security:authorize access="hasRole('CUSTOMER')">
-	<a href="fixUpTask/customer/create.do"><spring:message code="fixUpTask.create" /></a>
+	<div>
+	
+	
+		<a href="fixupTask/customer/create.do"> <spring:message
+				code="fixupTask.create" />
+		</a>
+	</div>
 </security:authorize>
-
-
-

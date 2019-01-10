@@ -1,37 +1,33 @@
 
 package domain;
 
+import java.util.Date;
+
 import javax.persistence.Access;
 import javax.persistence.AccessType;
-import javax.persistence.Entity;
-import javax.validation.constraints.Digits;
+import javax.persistence.Embeddable;
+import javax.validation.constraints.NotNull;
 
 import org.hibernate.validator.constraints.CreditCardNumber;
 import org.hibernate.validator.constraints.NotBlank;
 import org.hibernate.validator.constraints.Range;
+import org.springframework.format.annotation.DateTimeFormat;
 
-@Entity
+@Embeddable
 @Access(AccessType.PROPERTY)
-public class CreditCard extends DomainEntity {
+public class CreditCard {
 
-	// Constructors
-
-	public CreditCard() {
-		super();
-	}
-
-
-	// Attributes 
+	// Attributes
 
 	private String	holderName;
 	private String	brandName;
 	private String	number;
-	private String	expirationMonth;
-	private String	expirationYear;
-	private int		CVV;
+	private Date	expirationDate;
+	private Integer	cvvCode;
 
 
 	@NotBlank
+	@NotNull
 	public String getHolderName() {
 		return this.holderName;
 	}
@@ -41,6 +37,7 @@ public class CreditCard extends DomainEntity {
 	}
 
 	@NotBlank
+	@NotNull
 	public String getBrandName() {
 		return this.brandName;
 	}
@@ -49,8 +46,8 @@ public class CreditCard extends DomainEntity {
 		this.brandName = brandName;
 	}
 
-	@NotBlank
 	@CreditCardNumber
+	@NotBlank
 	public String getNumber() {
 		return this.number;
 	}
@@ -59,35 +56,24 @@ public class CreditCard extends DomainEntity {
 		this.number = number;
 	}
 
-	@NotBlank
-	@Range(min = 1, max = 12)
-	public String getExpirationMonth() {
-		return this.expirationMonth;
+	@NotNull
+	@DateTimeFormat(pattern = "dd/MM/yyyy")
+	public Date getExpirationDate() {
+		return this.expirationDate;
 	}
 
-	public void setExpirationMonth(final String expirationMonth) {
-		this.expirationMonth = expirationMonth;
-	}
-
-	@NotBlank
-	@Digits(integer = 4, fraction = 0)
-	public String getExpirationYear() {
-		return this.expirationYear;
-	}
-
-	public void setExpirationYear(final String expirationYear) {
-		this.expirationYear = expirationYear;
+	public void setExpirationDate(final Date expirationDate) {
+		this.expirationDate = expirationDate;
 	}
 
 	@Range(min = 100, max = 999)
-	public int getCVV() {
-		return this.CVV;
+	@NotNull
+	public Integer getCvvCode() {
+		return this.cvvCode;
 	}
 
-	public void setCVV(final int cVV) {
-		this.CVV = cVV;
+	public void setCvvCode(final Integer cvvCode) {
+		this.cvvCode = cvvCode;
 	}
-
-	// Relationships
 
 }

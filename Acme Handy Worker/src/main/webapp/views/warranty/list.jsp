@@ -1,7 +1,7 @@
 <%--
  * list.jsp
  *
- * Copyright (C) 2018 Universidad de Sevilla
+ * Copyright (C) 2017 Universidad de Sevilla
  * 
  * The use of this project is hereby constrained to the conditions of the 
  * TDG Licence, a copy of which you may download from 
@@ -22,15 +22,17 @@
 <!-- Listing grid -->
 
 <display:table pagesize="5" class="displaytag" keepStatus="true"
-	name="warrantys" requestURI="${requestURI}" id="row">
+	name="warranties" requestURI="${requestURI}" id="row">
 	
 	<!-- Action links -->
 
-	<security:authorize access="hasRole('HANDYWORKER')">
+	<security:authorize access="hasRole('ADMIN')">
 		<display:column>
-			<a href="warranty/handyWorker/edit.do?warrantyId=${row.id}">
+		<jstl:if test='${row.draft==true}'>
+			<a href="warranty/administrator/edit.do?warrantyId=${row.id}">
 				<spring:message	code="warranty.edit" />
 			</a>
+			</jstl:if>
 		</display:column>		
 	</security:authorize>
 	
@@ -39,20 +41,23 @@
 	<spring:message code="warranty.title" var="title" />
 	<display:column property="title" title="${title}" sortable="true" />
 
+	<spring:message code="warranty.laws" var="laws" />
+	<display:column property="laws" title="${laws}" sortable="true" format="{0,date,dd/MM/yyyy HH:mm}" />
+
 	<spring:message code="warranty.terms" var="terms" />
 	<display:column property="terms" title="${terms}" sortable="false" />
 	
-	<spring:message code="warranty.laws" var="laws" />
-	<display:column property="laws" title="${laws}" sortable="false" />
+	<spring:message code="warranty.draft" var="draft" />
+	<display:column property="draft" title="${draft}" sortable="false" />
 	
 
 </display:table>
 
 <!-- Botones  -->
 
-<security:authorize access="hasRole('HANDYWORKER')">
+<security:authorize access="hasRole('ADMIN')">
 	<div>
-		<a href="warranty/handyWorker/create.do"> <spring:message
+		<a href="warranty/administrator/create.do"> <spring:message
 				code="warranty.create" />
 		</a>
 	</div>

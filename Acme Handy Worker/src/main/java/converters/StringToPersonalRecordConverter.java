@@ -1,3 +1,4 @@
+
 package converters;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,26 +12,28 @@ import domain.PersonalRecord;
 
 @Component
 @Transactional
-public class StringToPersonalRecordConverter implements
-		Converter<String, PersonalRecord> {
+public class StringToPersonalRecordConverter implements Converter<String, PersonalRecord> {
 
 	@Autowired
-	PersonalRecordRepository personalRecordRepository;
+	private PersonalRecordRepository	repository;
+
 
 	@Override
-	public PersonalRecord convert(String text) {
-		PersonalRecord result;
+	public PersonalRecord convert(final String s) {
+		PersonalRecord res;
 		int id;
+
 		try {
-			if (StringUtils.isEmpty(text)) {
-				result = null;
-			} else {
-				id = Integer.valueOf(text);
-				result = personalRecordRepository.findOne(id);
+			if (!StringUtils.isEmpty(s))
+				res = null;
+			else {
+				id = Integer.valueOf(s);
+				res = this.repository.findOne(id);
 			}
-		} catch (Throwable oops) {
-			throw new IllegalArgumentException(oops);
+		} catch (final Throwable t) {
+			throw new IllegalArgumentException(t);
 		}
-		return result;
+		return res;
 	}
+
 }

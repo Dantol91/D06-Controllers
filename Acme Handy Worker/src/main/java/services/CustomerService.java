@@ -6,162 +6,217 @@ import java.util.Collection;
 
 import javax.transaction.Transactional;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.encoding.Md5PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
 import repositories.CustomerRepository;
 import security.Authority;
-import security.LoginService;
 import security.UserAccount;
-import security.UserAccountService;
+import domain.Application;
+import domain.Complaint;
 import domain.Customer;
-import domain.FixUpTask;
-import domain.SocialProfile;
+import domain.FixupTask;
+import domain.Note;
+import domain.Report;
+import domain.Settings;
+import domain.Url;
 
 @Service
 @Transactional
 public class CustomerService {
 
-	// Managed repository
-	@Autowired
-	private CustomerRepository		customerRepository;
-
-	// Supported services
+	// Managed repository 
 
 	@Autowired
-	private UserAccountService		userAccountService;
+	private CustomerRepository	customerRepository;
+
+	// Supporting services 
 
 	@Autowired
-	private BoxService				boxService;
+	private FolderService		folderService;
 
 	@Autowired
-	private ConfigurationService	configurationService;
+	private ServiceUtils		serviceUtils;
+
+	@Autowired
+	private FixupTaskService	fixupTaskService;
+
+	@Autowired
+	private ActorService		actorService;
+
+	@Autowired
+	private ReportService		reportService;
+
+	@Autowired
+	private SettingsService		settingsService;
 
 
-	// Constructor
+	// Constructors 
+
 	public CustomerService() {
 		super();
 	}
 
-	// Simple CRUD methods
+	// Simple CRUD methods 
+
 	public Customer create() {
-		final Collection<SocialProfile> socialProfiles = new ArrayList<SocialProfile>();
-		final Customer c;
-		UserAccount ua;
-		Authority auth;
-
-		c = new Customer();
-		ua = this.userAccountService.create();
-		auth = new Authority();
-
-		auth.setAuthority("CUSTOMER");
-		ua.addAuthority(auth);
-		c.setUserAccount(ua);
-		c.setSocialProfiles(socialProfiles);
-		c.setSuspicious(false);
-
-		return c;
-	}
-
-	public Customer save(Customer customer) {
-		Assert.notNull(customer);
-		if (customer.getId() == 0)
-			Assert.isTrue(this.userAccountService.findByUsername(customer.getUserAccount().getUsername()) == null, "message.error.duplicatedUser");
-		Boolean create = false;
-
-		// Comprobamos si se está creando el user
-		if (customer.getId() == 0) {
-			create = true;
-			Md5PasswordEncoder encoder;
-
-			encoder = new Md5PasswordEncoder();
-			customer.getUserAccount().setPassword(encoder.encodePassword(customer.getUserAccount().getPassword(), null));
-		}
-
-		if (customer.getPhone() != null) {
-			final String tlf = this.configurationService.checkPhoneNumber(customer.getPhone());
-			customer.setPhone(tlf);
-		}
-		if (customer.getId() == 0)
-			customer.getUserAccount().setBanned(false);
-
-		customer = this.customerRepository.save(customer);
-		if (create)
-			this.boxService.createSystemBoxes(customer);
-
-		return customer;
-	}
-
-	public Collection<Customer> findAll() {
-		return this.customerRepository.findAll();
-	}
-
-	public Customer findOne(final int customerId) {
 		Customer result;
-		result = this.customerRepository.findOne(customerId);
+		result = new Customer();
+
+		result.setUserAccount(new UserAccount());
+		final Authority authority = new Authority();
+		authority.setAuthority(Authority.CUSTOMER);
+		result.getUserAccount().addAuthority(authority);
+
+		result.getUserAccount().setBanned(false);
+		result.setSuspicious(false);
 		return result;
 	}
 
-	// Other Business Methods
-
-	public Customer getCustomerFromApplicationId(final int applicationId) {
-
-		return this.customerRepository.getCustomerFromApplicationId(applicationId);
-	}
-
-	public Customer getTopThreeCustomersComplaints() {
-
-		return this.customerRepository.getTopThreeCustomersComplaints();
-
-	}
-
-	//The listing of customers who have published at least 10% more fix-up tasks than the average, 
-	//ordered by number of applications.
-	public Collection<Customer> getCustomerMoreFixUpTasks() {
-
-		return this.customerRepository.getCustomerMoreFixUpTasks();
-
-	}
-
-	public Collection<Customer> getEndorseCustomers(final int handyWorkerId) {
-		Collection<Customer> results;
-
-		results = this.customerRepository.getEndorseCustomers(handyWorkerId);
-
-		return results;
-	}
-
-	protected void getFixUpTasksCustomer(final Customer customer, final FixUpTask f) {
-		Collection<FixUpTask> fixUpTasks;
-
-		fixUpTasks = customer.getFixUpTasks();
-		fixUpTasks.add(f);
-
-		customer.setFixUpTasks(fixUpTasks);
-	}
-
-	public Customer findByPrincipal() {
+	public Customer findOne(final int customerId) {
 		Customer res;
-		UserAccount userAccount;
 
-		userAccount = LoginService.getPrincipal();
-		Assert.notNull(userAccount);
-		res = this.findByUserAccount(userAccount);
+		res = this.customerRepository.findOne(customerId);
 		Assert.notNull(res);
+
+		return res;
+
+	}
+
+	public Collection<Customer> findAll() {
+		Collection<Customer> res;
+
+		res = this.customerRepository.findAll();
+		Assert.notNull(res);
+
 		return res;
 	}
 
-	public Customer findByUserAccount(final UserAccount userAccount) {
-		Assert.notNull(userAccount);
+	public Customer save(final Customer customer) {
+
+		Assert.notNull(customer);
+		Boolean isCreating = null;
+
+		if (customer.getId() == 0) {
+			isCreating = true;
+			customer.setSuspicious(false);
+
+		} else {
+			isCreating = false;
+
+			this.serviceUtils.checkIdSave(customer);
+
+			Customer customerBD;
+			Assert.isTrue(customer.getId() > 0);
+
+			customerBD = this.customerRepository.findOne(customer.getId());
+
+			customer.setSuspicious(customerBD.getSuspicious());
+			customer.setUserAccount(customerBD.getUserAccount());
+
+			this.serviceUtils.checkAuthority("CUSTOMER");
+			this.serviceUtils.checkActor(customer);
+
+		}
+		if ((!customer.getPhone().startsWith("+")) && StringUtils.isNumeric(customer.getPhone()) && customer.getPhone().length() > 3) {
+			final Settings settings = this.settingsService.findSettings();
+			customer.setPhone(settings.getCountryCode() + customer.getPhone());
+		}
 		Customer res;
-		res = this.customerRepository.findByUserAccountId(userAccount.getId());
+
+		res = this.customerRepository.save(customer);
+		this.flush();
+		if (isCreating)
+			this.folderService.createSystemFolders(res);
 		return res;
 	}
 
-	public Customer findByUserAccountId(final int userAccountId) {
-		return this.customerRepository.findByUserAccountId(userAccountId);
+	// Other business methods
+
+	public Collection<Customer> getTop3CustomerWithMoreComplaints() {
+		final Collection<Customer> ratio = new ArrayList<>();
+
+		final Collection<Customer> customersCompl = this.customerRepository.getTop3CustomerWithMoreComplaints();
+		int i = 0;
+		for (final Customer c : customersCompl)
+			if (i < 3) {
+				ratio.add(c);
+				i++;
+
+			}
+		return ratio;
 	}
 
+	public Collection<Customer> listCustomer10() {
+		final Collection<Customer> list = this.customerRepository.listCustomer10();
+		return list;
+	}
+
+	public Collection<FixupTask> getAllFixupTasks() {
+		Collection<FixupTask> res;
+		res = this.fixupTaskService.findAll();
+		return res;
+	}
+
+	public Collection<FixupTask> getFixupTaskByCustomer(final Customer c) {
+		final Collection<FixupTask> res = this.fixupTaskService.findByCustomer(c);
+		return res;
+	}
+
+	public void banActor(final Customer a) {
+		Assert.notNull(a);
+		this.serviceUtils.checkAuthority("ADMIN");
+		a.getUserAccount().setBanned(true);
+		this.customerRepository.save(a);
+
+	}
+
+	public void unBanActor(final Customer a) {
+		Assert.notNull(a);
+		this.serviceUtils.checkAuthority("ADMIN");
+		a.getUserAccount().setBanned(false);
+		this.customerRepository.save(a);
+
+	}
+
+	public void flush() {
+		this.customerRepository.flush();
+	}
+
+	public boolean isSuspicious(final Customer c) {
+		final Customer customer = (Customer) this.serviceUtils.checkObject(c);
+		Boolean res = false;
+		for (final FixupTask f : customer.getFixupTasks()) {
+			if (this.actorService.containsSpam(f.getDescription())) {
+				res = true;
+				break;
+			}
+			for (final Application a : f.getApplications())
+				if (this.actorService.containsSpam(a.getCustomerComments()) || this.actorService.containsSpam(a.getCreditCard().getBrandName()) || this.actorService.containsSpam(a.getCreditCard().getHolderName())) {
+					res = true;
+					break;
+				}
+			for (final Complaint com : f.getComplaints()) {
+				for (final Url u : com.getAttachments())
+					if (this.actorService.containsSpam(u.getUrl())) {
+						res = true;
+						break;
+					}
+				if (this.actorService.containsSpam(com.getDescription())) {
+					res = true;
+					break;
+				}
+				final Report report = this.reportService.findByComplaint(com);
+				for (final Note n : report.getNotes())
+					for (final String comment : n.getComments())
+						if (this.actorService.containsSpam(comment)) {
+							res = true;
+							break;
+						}
+			}
+		}
+		return res;
+	}
 }

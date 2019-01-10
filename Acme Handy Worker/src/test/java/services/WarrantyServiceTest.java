@@ -34,7 +34,7 @@ public class WarrantyServiceTest extends AbstractTest {
 		Collection<Warranty> warranties;
 
 		warranty = this.warrantyService.create();
-		warranty.setFinalMode(false);
+		//	warranty.setFinalMode(false);
 		warranty.setLaws("Test laws");
 		warranty.setTerms("Test terms");
 		warranty.setTitle("Test title");

@@ -10,23 +10,24 @@
 
 package controllers;
 
-import java.util.Locale;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
-import services.ConfigurationService;
+import services.SettingsService;
+import domain.Settings;
 
 @Controller
 @RequestMapping("/welcome")
 public class WelcomeController extends AbstractController {
 
-	// Services 
-
 	@Autowired
-	private ConfigurationService	configurationService;
+	private SettingsService	settingsService;
 
 
 	// Constructors 
@@ -35,22 +36,25 @@ public class WelcomeController extends AbstractController {
 		super();
 	}
 
-	// Index 
+	// Index 	
 
 	@RequestMapping(value = "/index")
-	public ModelAndView index(final Locale locale) {
+	public ModelAndView index(@RequestParam(required = false, defaultValue = "") final String name) {
 		ModelAndView result;
-		String welcomeMessage = "";
+		SimpleDateFormat formatter;
+		String moment;
 
-		if ("es".equals(locale.getLanguage()))
-			welcomeMessage = this.configurationService.getConfiguration().getWelcomeMessageES();
-		else if ("en".equals(locale.getLanguage()))
-			welcomeMessage = this.configurationService.getConfiguration().getWelcomeMessageEN();
+		formatter = new SimpleDateFormat("dd/MM/yyyy HH:mm");
+		moment = formatter.format(new Date());
+
+		final Settings settings = this.settingsService.findSettings();
 
 		result = new ModelAndView("welcome/index");
-		result.addObject("welcomeMessage", welcomeMessage);
+
+		result.addObject("englishWelcome", settings.getWelcomeMessageEnglish());
+		result.addObject("spanishWelcome", settings.getWelcomeMessageSpanish());
+		result.addObject("moment", moment);
 
 		return result;
 	}
-
 }

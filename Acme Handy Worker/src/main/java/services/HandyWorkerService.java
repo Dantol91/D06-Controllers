@@ -1,46 +1,63 @@
 
 package services;
 
-import java.util.ArrayList;
 import java.util.Collection;
-
-import javax.transaction.Transactional;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.encoding.Md5PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
 import repositories.HandyWorkerRepository;
 import security.Authority;
-import security.LoginService;
 import security.UserAccount;
-import security.UserAccountService;
-import domain.Finder;
+import domain.Application;
+import domain.Complaint;
+import domain.Customer;
+import domain.FixupTask;
 import domain.HandyWorker;
+import domain.Note;
 import domain.Phase;
-import domain.SocialProfile;
+import domain.Report;
+import domain.Url;
+import domain.WorkPlan;
 
 @Service
 @Transactional
 public class HandyWorkerService {
 
-	// Managed repository
+	//Managed Repository
+
 	@Autowired
 	private HandyWorkerRepository	handyWorkerRepository;
 
-	// Supporting services
+	// Supporting Service
+
 	@Autowired
-	private UserAccountService		userAccountService;
+	private FixupTaskService		fixupTaskService;
+
 	@Autowired
-	private BoxService				boxService;
+	private ServiceUtils			serviceUtils;
+
 	@Autowired
-	private ConfigurationService	configurationService;
+	private ActorService			actorService;
+
 	@Autowired
-	private FinderService			finderService;
+	private ApplicationService		applicationService;
+
+	@Autowired
+	private ReportService			reportService;
+
+	@Autowired
+	private WorkPlanService			workPlanService;
+
+	@Autowired
+	FolderService					folderService;
 
 
-	// Constructor
+	//constructor
 
 	public HandyWorkerService() {
 		super();
@@ -49,140 +66,171 @@ public class HandyWorkerService {
 	// Simple CRUD methods
 
 	public HandyWorker create() {
+		HandyWorker result;
+		result = new HandyWorker();
 
-		final Collection<SocialProfile> socialProfiles = new ArrayList<SocialProfile>();
-		HandyWorker h;
-		UserAccount ua;
-		Authority auth;
+		result.setUserAccount(new UserAccount());
+		final Authority authority = new Authority();
+		authority.setAuthority(Authority.HANDYWORKER);
+		result.getUserAccount().addAuthority(authority);
 
-		h = new HandyWorker();
-		ua = this.userAccountService.create();
-
-		auth = new Authority();
-
-		auth.setAuthority("HANDYWORKER");
-		ua.addAuthority(auth);
-		h.setUserAccount(ua);
-		h.setSocialProfiles(socialProfiles);
-		h.setSuspicious(false);
-
-		return h;
-	}
-
-	public HandyWorker save(HandyWorker handyWorker) {
-		Assert.notNull(handyWorker);
-
-		if (handyWorker.getId() == 0)
-			Assert.isTrue(this.userAccountService.findByUsername(handyWorker.getUserAccount().getUsername()) == null, "message.error.duplicatedUser");
-
-		Boolean create = false;
-		Finder f;
-
-		// Comprobamos si se está creando el user
-		if (handyWorker.getId() == 0) {
-			create = true;
-			Md5PasswordEncoder encoder;
-
-			encoder = new Md5PasswordEncoder();
-			handyWorker.getUserAccount().setPassword(encoder.encodePassword(handyWorker.getUserAccount().getPassword(), null));
-		}
-
-		if (handyWorker.getPhone() != null) {
-			final String tlf = this.configurationService.checkPhoneNumber(handyWorker.getPhone());
-			handyWorker.setPhone(tlf);
-		}
-
-		if (handyWorker.getId() == 0)
-
-			handyWorker = this.handyWorkerRepository.save(handyWorker);
-		if (create) {
-			this.boxService.createSystemBoxes(handyWorker);
-			f = this.finderService.create();
-
-			this.finderService.save(f);
-		}
-
-		return handyWorker;
+		final String make = "initialMake";
+		result.setMake(make);
+		result.getUserAccount().setBanned(false);
+		result.setSuspicious(false);
+		return result;
 	}
 
 	public Collection<HandyWorker> findAll() {
 		return this.handyWorkerRepository.findAll();
+	}
 
+	public Collection<HandyWorker> findAll(final int handyWorkerId) {
+		Collection<HandyWorker> hw;
+
+		hw = this.handyWorkerRepository.findAll();
+		Assert.notNull(hw);
+
+		return hw;
 	}
 
 	public HandyWorker findOne(final int handyWorkerId) {
-		Assert.notNull(handyWorkerId);
-
-		final HandyWorker h;
-
-		h = this.handyWorkerRepository.findOne(handyWorkerId);
-
-		return h;
+		Assert.notNull(this);
+		return this.handyWorkerRepository.findOne(handyWorkerId);
 	}
 
-	// Other business methods
+	public HandyWorker save(final HandyWorker hw) {
 
-	public HandyWorker findByApplicationId(final int applicationId) {
+		Assert.notNull(hw);
 
-		return this.handyWorkerRepository.findByApplicationId(applicationId);
-	}
+		Boolean isCreating = null;
 
-	public HandyWorker findByPrincipal() {
+		if (hw.getId() == 0) {
+			isCreating = true;
+			hw.setSuspicious(false);
+		} else {
+			isCreating = false;
+
+			this.serviceUtils.checkIdSave(hw);
+
+			final HandyWorker handyWorkerBD;
+			Assert.isTrue(hw.getId() > 0);
+
+			handyWorkerBD = this.handyWorkerRepository.findOne(hw.getId());
+
+			hw.setSuspicious(handyWorkerBD.getSuspicious());
+			hw.setUserAccount(handyWorkerBD.getUserAccount());
+
+			this.serviceUtils.checkAuthority("HANDYWORKER");
+			this.serviceUtils.checkActor(hw);
+		}
 		HandyWorker res;
-		UserAccount userAccount;
-
-		userAccount = LoginService.getPrincipal();
-		Assert.notNull(userAccount);
-		res = this.findByUserAccount(userAccount);
-		Assert.notNull(res);
+		res = this.handyWorkerRepository.save(hw);
+		this.flush();
+		if (isCreating)
+			this.folderService.createSystemFolders(res);
 		return res;
 	}
 
-	public HandyWorker findByUserAccount(final UserAccount userAccount) {
-		Assert.notNull(userAccount);
-		HandyWorker res;
-		res = this.handyWorkerRepository.findByUserAccountId(userAccount.getId());
+	public void delete(final HandyWorker hw) {
+		Assert.notNull(hw);
+
+		Assert.isTrue(hw.getId() != 0);
+		this.handyWorkerRepository.delete(hw);
+	}
+
+	//Other methods
+
+	public Map<String, Collection<HandyWorker>> fixupTasksTop3() {
+		final Collection<HandyWorker> collection = this.handyWorkerRepository.findTop3HandyWorkerWithMoreComplaints();
+		final Map<String, Collection<HandyWorker>> res = new HashMap<>();
+
+		res.put("Collection", collection);
+
+		return res;
+
+	}
+
+	public Collection<HandyWorker> getTop3HandyWorkerWithMoreComplaints() {
+		final Collection<HandyWorker> ratio = this.handyWorkerRepository.findTop3HandyWorkerWithMoreComplaints();
+		return ratio;
+	}
+
+	public Collection<HandyWorker> listHandyWorkerApplication() {
+		final Collection<HandyWorker> list = this.handyWorkerRepository.listHandyWorkerApplication();
+		return list;
+	}
+
+	//un handy worker lista todos los fixupTasks
+	public Collection<FixupTask> getAllFixupTasks() {
+		Collection<FixupTask> res;
+		res = this.fixupTaskService.findAll();
 		return res;
 	}
 
-	public HandyWorker findByUserAccountId(final int userAccountId) {
-		return this.handyWorkerRepository.findByUserAccountId(userAccountId);
+	public Collection<FixupTask> getFixupTaskFromCustomer(final Customer customer) {
+		Collection<FixupTask> res;
+		res = this.fixupTaskService.findByCustomer(customer);
+		return res;
 	}
 
-	public HandyWorker getHandyWorkerByCurriculumId(final int curriculumId) {
-		Assert.notNull(curriculumId);
-
-		return this.handyWorkerRepository.getHandyWorkerByCurriculumId(curriculumId);
+	public void banActor(final HandyWorker hw) {
+		Assert.notNull(hw);
+		this.serviceUtils.checkAuthority("ADMIN");
+		hw.getUserAccount().setBanned(true);
+		this.handyWorkerRepository.save(hw);
 	}
 
-	public HandyWorker getTopThreeHandyWorkersComplaints() {
-
-		return this.handyWorkerRepository.getTopThreeHandyWorkersComplaints();
-
+	public void unbanActor(final HandyWorker hw) {
+		Assert.notNull(hw);
+		this.serviceUtils.checkAuthority("ADMIN");
+		hw.getUserAccount().setBanned(false);
+		this.handyWorkerRepository.save(hw);
 	}
 
-	//The listing of handy workers who have got accepted at least 10% more ap-plications than the average,
-	//ordered by number of applications.
-	public Collection<HandyWorker> getHandyWorkerApplications() {
-
-		return this.handyWorkerRepository.getHandyWorkerApplications();
-
+	public HandyWorker findByAssignedFixupTask(final FixupTask f) {
+		final FixupTask fixupTask = (FixupTask) this.serviceUtils.checkObject(f);
+		return this.handyWorkerRepository.findByAssignedFixupTask(fixupTask.getId());
 	}
 
-	public Collection<HandyWorker> getEndorseHandyWorkers(final int customerId) {
-		Collection<HandyWorker> handyWorkers;
-
-		handyWorkers = this.handyWorkerRepository.getEndorseHandyWorkers(customerId);
-
-		return handyWorkers;
+	public boolean isSuspicious(final HandyWorker h) {
+		final HandyWorker handyWorker = (HandyWorker) this.serviceUtils.checkObject(h);
+		Boolean res = false;
+		for (final Application a : this.applicationService.findApplicationsByHandyWorker(handyWorker))
+			if (this.actorService.containsSpam(a.getWorkerComments())) {
+				res = true;
+				break;
+			}
+		for (final FixupTask f : this.fixupTaskService.findAcceptedFixupTasksByHandyWorker(handyWorker))
+			for (final Complaint com : f.getComplaints()) {
+				for (final Url u : com.getAttachments())
+					if (this.actorService.containsSpam(u.getUrl())) {
+						res = true;
+						break;
+					}
+				if (this.actorService.containsSpam(com.getDescription())) {
+					res = true;
+					break;
+				}
+				final Report report = this.reportService.findByComplaint(com);
+				for (final Note n : report.getNotes())
+					for (final String comment : n.getComments())
+						if (this.actorService.containsSpam(comment)) {
+							res = true;
+							break;
+						}
+			}
+		for (final WorkPlan w : this.workPlanService.findWorkPlanByHandyWorker(handyWorker))
+			for (final Phase p : w.getPhases())
+				if (this.actorService.containsSpam(p.getDescription()) || this.actorService.containsSpam(p.getTitle())) {
+					res = true;
+					break;
+				}
+		return res;
 	}
 
-	public int findPhaseCreator(final Phase phase) {
-		int result;
-
-		result = this.handyWorkerRepository.getPhaseByHandyWorkerId(phase);
-
-		return result;
+	public void flush() {
+		this.handyWorkerRepository.flush();
 	}
 
 }

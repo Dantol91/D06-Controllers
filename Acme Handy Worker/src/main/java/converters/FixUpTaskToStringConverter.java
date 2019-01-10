@@ -1,25 +1,26 @@
+
 package converters;
+
+import javax.transaction.Transactional;
 
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
-import domain.FixUpTask;
-
+import domain.FixupTask;
 
 @Component
 @Transactional
-public class FixUpTaskToStringConverter implements Converter<FixUpTask, String> {
+public class FixupTaskToStringConverter implements Converter<FixupTask, String> {
 
 	@Override
-	public String convert(final FixUpTask fixUpTask) {
+	public String convert(final FixupTask fixupTask) {
 		String result;
-
-		if (fixUpTask == null)
+		if (fixupTask == null)
 			result = null;
 		else
-			result = String.valueOf(fixUpTask.getId());
+			result = String.valueOf(fixupTask.getId());
 
 		return result;
 	}
+
 }

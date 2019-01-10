@@ -1,4 +1,12 @@
-<link rel="stylesheet" href="styles/fixUpTask.css" type="text/css">
+<%--
+ * edit.jsp
+ *
+ * Copyright (C) 2018 Universidad de Sevilla
+ * 
+ * The use of this project is hereby constrained to the conditions of the 
+ * TDG Licence, a copy of which you may download from 
+ * http://www.tdg-seville.info/License.html
+ --%>
 
 <%@page language="java" contentType="text/html; charset=ISO-8859-1"
 	pageEncoding="ISO-8859-1"%>
@@ -12,150 +20,160 @@
 	uri="http://www.springframework.org/security/tags"%>
 <%@taglib prefix="display" uri="http://displaytag.sf.net"%>
 
-<script type="text/javascript">
-
-$(document).ready(function() {
-	 $("#formID").submit(function(){
-	var partsPD = document.getElementById("publicationDateID").value.split('/');
-	var publicationDate = new Date(partsPD[2],partsPD[1]-1,partsPD[0]); 
-	var partsSD = document.getElementById("startDateID").value.split('/');
-	var startDate = new Date(partsSD[2],partsSD[1]-1,partsSD[0]); 
-	var partsED = document.getElementById("endDateID").value.split('/');
-	var endDate = new Date(partsED[2],partsED[1]-1,partsED[0]); 
-	
-	if(publicationDate > startDate){
-		alert("Publication date must be before the start date");
-		return false;
-	}else if(publicationDate > endDate){
-		alert("Publication date must be before the end date");
-		return false;
-	}else if(startDate > endDate){
-		alert("Start date must be before the end date");
-		return false;
+<%
+	Cookie[] cookies = request.getCookies();
+	Cookie languageCookie = null;
+	for (Cookie c : cookies) {
+		if (c.getName().equals("language")) {
+			languageCookie = c;
+		}
 	}
-	
-});
-});
 
+	String languageValue = languageCookie.getValue();
+%>
+
+<link rel="stylesheet"
+	href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+<link rel="stylesheet" href="/resources/demos/style.css">
+
+<!-- ------------------------------PARA FECHAS------------------------------------------------ -->
+<!-- Hay que crear uno por cada input de fecha: datepicker1,datepicker2.... -->
+<!-- LUEGO HAY QUE PONER EN EL form:imput id="datepicker1"..... -->
+
+
+<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+
+<script>
+	$(function() {
+		$("#datepicker1").datepicker({ dateFormat: 'dd/mm/yy'});
+	});
+	$(function() {
+		$("#datepicker2").datepicker({dateFormat: 'dd/mm/yy'});
+	});
 </script>
 
+	<!-- ------------------------------------------------------------------------------------------------ -->
 
-<%-- SE OBTINE LA FECHA ACTUAL --%>
-<jsp:useBean id="date" class="java.util.Date" />
+	<security:authentication property="principal.username" var="username" />
+	<jstl:if
+		test='${fixupTask.customer.userAccount.username == username || fixupTask.id == 0}'>
 
-<form:form id="formID" action="fixUpTask/customer/edit.do" modelAttribute="fixUpTask">
 
-	<form:hidden path="id" />
-	<form:hidden path="version" />
-	<form:hidden path="ticker" />
-	<form:hidden path="applications" />
+		<jstl:if test=""></jstl:if>
+		<security:authorize access="hasRole('CUSTOMER')">
 
-	<jstl:choose>
+			<form:form action="fixupTask/customer/edit.do" method="post"
+				id="formCreate" name="formCreate" modelAttribute="fixupTask">
 
-		<jstl:when test="${fixUpTask.getPublicationDate() lt date and fixUpTask.id!=0}">
+				<form:hidden path="id" />
+				<form:hidden path="version" />
+				<form:hidden path="moment" />
+				<form:hidden path="customer" />
+				<form:hidden path="applications" />
+				<form:hidden path="ticker" />
+				<form:hidden path="complaints" />
 
-			<form:hidden path="title" />
-			<form:hidden path="description" />
-			<form:hidden path="publicationDate" />
-			<form:hidden path="startDate" />
-			<form:hidden path="endDate" />
-			<form:hidden path="category" />
-			
-		</jstl:when>
-		<jstl:otherwise>
 
-			<div id="fixUpTaskForm">
 
-				<!-- Se guarda en una variable el formato de la fecha según el idioma -->
-				<spring:message code="master.page.date.format" var="dateFormat" />
 
 				<form:label path="description">
-					<spring:message code="fixUpTask.description" />:
+					<b><spring:message code="fixupTask.description"></spring:message>:</b>
 				</form:label>
 				<form:textarea path="description" />
-				<form:errors cssClass="error" path="description" />
-				<br /> <br />
+				<form:errors cssClass="error" path="description"></form:errors>
+				<br />
 
-				<form:label path="publicationDate">
-					<spring:message code="fixUpTask.publicationDate" />:
+				<form:label path="address">
+					<b><spring:message code="fixupTask.address"></spring:message>:</b>
 				</form:label>
-				<form:input id="publicationDateID" path="publicationDate" class="fixUpTaskDate" placeholder="${dateFormat}" />
-				<form:errors cssClass="error" path="publicationDate" />
-				<br /> <br />
+				<form:input path="address" />
+				<form:errors cssClass="error" path="address"></form:errors>
+				<br />
 
-
-				<form:label path="startDate">
-					<spring:message code="fixUpTask.startDate" />:
+				<form:label path="maximumPrice">
+					<b><spring:message code="fixupTask.maximumPrice"></spring:message>:</b>
 				</form:label>
-				<form:input id="startDateID" path="startDate" class="fixUpTaskDate" placeholder="${dateFormat}" />
-				<form:errors cssClass="error" path="startDate" />
-				<br /> <br />
+				<form:input path="maximumPrice" />
+				<form:errors cssClass="error" path="maximumPrice"></form:errors>
+				<br />
 
-
-				<form:label path="endDate">
-					<spring:message code="fixUpTask.endDate" />:
+				<form:label path="start">
+					<b><spring:message code="fixupTask.start"></spring:message>:</b>
 				</form:label>
-				<form:input id="endDateID" path="endDate" class="fixUpTaskDate" placeholder="${dateFormat}" />
-				<form:errors cssClass="error" path="endDate" />
-				<br /> <br />
+				<form:input id="datepicker1" path="start" />
+				<form:errors cssClass="error" path="start"></form:errors>
+				<br />
+
+				<form:label path="end">
+					<b><spring:message code="fixupTask.end"></spring:message>:</b>
+				</form:label>
+				<form:input id="datepicker2" path="end" />
+				<form:errors cssClass="error" path="end" />
+				<br />
 
 
-				<!-- RELACIONES -->
+				<form:label path="warranty">
+					<b><spring:message code="fixupTask.warranty"></spring:message>:</b>
+				</form:label>
+				<form:select id="warranty" path="warranty">
+					<form:option value="${warranties}" label="------"></form:option>
+
+					<form:options items="${warranties}" itemLabel="title"
+						itemValue="id" />
+
+
+				</form:select>
+				<form:errors cssClass="error" path="warranty" />
+				<br />
+
+
+
+
 
 				<form:label path="category">
-					<spring:message code="master.page.category" />:
+					<b><spring:message code="fixupTask.category"></spring:message>:</b>
 				</form:label>
-				
-				<form:select path="category">
-					<form:option value="0" label="----" />
-					<jstl:forEach items="${categories}" var="cat">
-						<form:option value="${cat.id}"
-							label="${cat.name} [Parent: ${cat.parentCategory.name}]" />
-					</jstl:forEach>
+				<form:select id="category" path="category">
+					<form:option value="${categories}" label="------"></form:option>
+
+					<%
+						if (languageValue.equals("en")) {
+					%>
+					<form:options items="${categories}" itemLabel="nameEnglish"
+						itemValue="id" />
+					<%
+						} else if (languageValue.equals("es")) {
+					%>
+					<form:options items="${categories}" itemLabel="nameSpanish"
+						itemValue="id" />
+					<%
+						}
+					%>
+
 				</form:select>
 				<form:errors cssClass="error" path="category" />
-				<br /> <br />
+				<br />
 
-				
-				<jstl:if test="${fixUpTask.id != 0}">
-					<input type="button"
-						value="<spring:message code="fixUpTask.addStage" />"
-						onclick="javascript: relativeRedir('stage/customer/create.do?fixUpTaskId=${fixUpTask.id}');" />
-					<input type="button" value="<spring:message code="fixUpTask.addTag" />"
-						onclick="javascript: relativeRedir('tag/list.do?fixUpTaskId=<jstl:out value="${fixUpTask.getId()}"/>');" />
-				</jstl:if>
-				<%-- SOLO LOS CUSTOMERS PUEDEN EDITAR Y ELIMINAR LAS FIXUPTASKS, SI LA PUBLICATION DATE NO HA PASADO --%>
 
-				<%-- SE CONTROLA QUE LA PUBLICATION DATE NO HAYA PASADO PARA PODER ELIMINAR --%>
-				<jstl:if test="${fixUpTask.getPublicationDate() gt date}">
 
-					<security:authorize access="hasRole('CUSTOMER')">
-						<jstl:if test="${fixUpTask.id != 0}">
-							<input type="submit" name="delete"
-								value="<spring:message code="fixUpTask.delete" />"
-								onclick="return confirm('<spring:message code="fixUpTask.confirm.delete" />')" />
-						</jstl:if>
-					</security:authorize>
-				</jstl:if>
 
-			</div>
-			<br />
-		</jstl:otherwise>
+				<!--  Botones -->
 
-	</jstl:choose>
+				<input type="submit" name="save"
+					value="<spring:message code="fixupTask.save"></spring:message>" />
+				<spring:message code="fixupTask.cancel" var="cancel"></spring:message>
+				<input type="button" name="cancel" value="${cancel}"
+					onclick="javascript:relativeRedir('fixupTask/endorsable/list.do')" />
 
-	<br />
+			</form:form>
 
-	<input type="submit" name="save"
-		value="<spring:message code="fixUpTask.save" />" />&nbsp; 
-	<jstl:if test="${fixUpTask.id != 0">
-		<input type="submit" name="delete"
-			value="<spring:message code="category.delete" />"
-			onclick="return confirm('<spring:message code="category.confirm.delete" />')" />
+
+		</security:authorize>
+
+	</jstl:if> <jstl:if
+		test='${fixupTask.customer.userAccount.username != username && fixupTask.id != 0}'>
+		<h1>
+			<b><spring:message code="fixupTask.permissions"></spring:message></b>
+		</h1>
 	</jstl:if>
-	<input type="button" name="cancel"
-		value="<spring:message code="application.cancel" />"
-		onclick="javascript: relativeRedir('fixUpTask/customer/list.do');" />
-	<br />
-
-</form:form>

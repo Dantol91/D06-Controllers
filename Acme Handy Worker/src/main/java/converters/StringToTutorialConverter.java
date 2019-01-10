@@ -1,9 +1,11 @@
+
 package converters;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import repositories.TutorialRepository;
 import domain.Tutorial;
@@ -13,22 +15,25 @@ import domain.Tutorial;
 public class StringToTutorialConverter implements Converter<String, Tutorial> {
 
 	@Autowired
-	TutorialRepository tutorialRepository;
+	private TutorialRepository	repository;
 
 
 	@Override
-	public Tutorial convert(final String text) {
-		Tutorial result;
+	public Tutorial convert(final String s) {
+		Tutorial res;
 		int id;
 
 		try {
-			id = Integer.valueOf(text);
-			result = this.tutorialRepository.findOne(id);
-		} catch (final Throwable oops) {
-			throw new IllegalArgumentException(oops);
+			if (StringUtils.isEmpty(s))
+				res = null;
+			else {
+				id = Integer.valueOf(s);
+				res = this.repository.findOne(id);
+			}
+		} catch (final Throwable t) {
+			throw new IllegalArgumentException(t);
 		}
-
-		return result;
+		return res;
 	}
 
 }

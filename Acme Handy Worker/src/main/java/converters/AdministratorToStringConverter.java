@@ -1,23 +1,24 @@
+
 package converters;
+
+import javax.transaction.Transactional;
 
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 import domain.Administrator;
 
 @Component
 @Transactional
-public class AdministratorToStringConverter implements Converter<Administrator, String>{
-	
-	@Override
-	public String convert(final Administrator administrator) {
-		String result;
+public class AdministratorToStringConverter implements Converter<Administrator, String> {
 
-		if (administrator == null)
+	@Override
+	public String convert(final Administrator actor) {
+		String result;
+		if (actor == null)
 			result = null;
 		else
-			result = String.valueOf(administrator.getId());
+			result = String.valueOf(actor.getId());
 
 		return result;
 	}

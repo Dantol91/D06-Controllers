@@ -1,82 +1,102 @@
+<%--
+ * create.jsp
+ *
+ * Copyright (C) 2017 Universidad de Sevilla
+ * 
+ * The use of this project is hereby constrained to the conditions of the 
+ * TDG Licence, a copy of which you may download from 
+ * http://www.tdg-seville.info/License.html
+ --%>
+
 <%@page language="java" contentType="text/html; charset=ISO-8859-1"
 	pageEncoding="ISO-8859-1"%>
 
 <%@taglib prefix="jstl" uri="http://java.sun.com/jsp/jstl/core"%>
-<%@taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
-<%@taglib prefix="tiles" uri="http://tiles.apache.org/tags-tiles"%>
 <%@taglib prefix="spring" uri="http://www.springframework.org/tags"%>
 <%@taglib prefix="form" uri="http://www.springframework.org/tags/form"%>
 <%@taglib prefix="security"
 	uri="http://www.springframework.org/security/tags"%>
 <%@taglib prefix="display" uri="http://displaytag.sf.net"%>
 
+<security:authorize access="hasRole('HANDYWORKER')">
+	<div>
+
+		<form:form action="personalRecord/handyWorker/edit.do" method="post"
+			id="formCreate" name="formCreate" modelAttribute="personalRecord">
+
+			<!-- Atributos hidden-->
+
+			<form:hidden path="id" />
+			<form:hidden path="version" />
+			<form:hidden path="curriculum" />
 
 
-<form:form id="formID" action="personalRecord/handyWorker/edit.do"
-	modelAttribute="personalRecord">
+			<fieldset>
+				<!-------------------Form ------------------------------------>
+				<div>
+					<form:label path="fullName">
+						<spring:message code="personalRecord.fullName"></spring:message>
+					</form:label>
+					<form:input path="fullName" id="fullName"
+						name="fullName" />
+					<form:errors cssClass="error" path="fullName" />
+					<br />
+				</div>
 
-	<form:hidden path="id" />
-	<form:hidden path="version" />
+				<div>
+					<form:label path="photo">
+						<spring:message code="personalRecord.photo"></spring:message>
+					</form:label>
+					<form:input path="photo" id="photo" name="photo" />
+					<form:errors cssClass="error" path="photo" />
+					<br />
+				</div>
+				
+				<div>
+					<form:label path="phone">
+						<spring:message code="personalRecord.phone"></spring:message>
+					</form:label>
+					<form:input path="phone" id="phone" name="phone" />
+					<form:errors cssClass="error" path="phone" />
+					<br />
+				</div>
 
-	<%-- MODIFICANDO LOS VALORES DEL PERSONAL RECORD, SOLO EXISTE UN PERSONAL RECORD --%>
+				<div>
+					<form:label path="email">
+						<spring:message code="personalRecord.email"></spring:message>
+					</form:label>
+					<form:input path="email" id="email" name="email" />
+					<form:errors cssClass="error" path="email" />
+					<br />
+				</div>
 
-	<b><spring:message code="curriculum.personalRecord"></spring:message></b>
+				<div>
+					<form:label path="linkedinProfile">
+						<spring:message code="personalRecord.linkedinProfile"></spring:message>
+					</form:label>
+					<form:input path="linkedinProfile" id="linkedinProfile" name="linkedinProfile" />
+					<form:errors cssClass="error" path="linkedinProfile" />
+					<br />
+				</div>
 
-	<br />
-	<br />
+			</fieldset>
+			
+			<input type="submit" name="save" value="<spring:message code="personalRecord.save"></spring:message>" />
 
-	<form:label path="fullName">
-		<spring:message code="curriculum.personalRecord.fullName" />:
-	</form:label>
-	<form:input path="fullName" />
-	<form:errors cssClass="error" path="fullName" />
-	<br />
-	<br />
+			<button type="button"
+				onclick="javascript: relativeRedir('curriculum/handyWorker/display.do">
+				<spring:message code="personalRecord.cancel" />
+			</button>
 
-	<form:label path="photoUrl">
-		<spring:message code="curriculum.personalRecord.photoUrl" />:
-	</form:label>
-	<form:input path="photoUrl" />
-	<form:errors cssClass="error" path="photoUrl" />
-	<br />
-	<br />
+			<jstl:if test="${personalRecord.id != 0}">
+				<input type="submit" name="delete"
+					value="<spring:message code="personalRecord.delete" />"
+					onclick="return confirm('<spring:message code="personalRecord.confirm.delete" />')" />&nbsp;
+			</jstl:if>
 
-	<form:label path="email">
-		<spring:message code="curriculum.personalRecord.email" />:
-	</form:label>
-	<form:input path="email" />
-	<form:errors cssClass="error" path="email" />
-	<br />
-	<br />
+		</form:form>
 
-	<form:label path="phoneNumber">
-		<spring:message code="curriculum.personalRecord.phoneNumber" />:
-	</form:label>
-	<form:input path="phoneNumber" />
-	<form:errors cssClass="error" path="phoneNumber" />
-	<br />
-	<br />
-
-	<form:label path="linkedInProfileUrl">
-		<spring:message code="curriculum.personalRecord.linkedInProfileUrl" />:
-	</form:label>
-	<form:input path="linkedInProfileUrl" />
-	<form:errors cssClass="error" path="linkedInProfileUrl" />
-	<br />
-	<br />
+	</div>
 
 
-	<input type="submit" name="save"
-		value="<spring:message code="curriculum.save" />" />&nbsp;
-		
-	<input type="button" name="cancel"
-		value="<spring:message code="personalRecord.cancel" />"
-		onclick="javascript: relativeRedir('/curriculum/handyWorker/displayMyCurriculum.do');" />
-		
-<%-- 	<jstl:if test="${personalRecord.id != 0}">
-	<input type="submit" name="delete"
-		value="<spring:message code="curriculum.delete" />"
-		onclick="return confirm('<spring:message code="curriculum.confirm.delete" />')" />
-	</jstl:if> --%>
-
-</form:form>
+</security:authorize>

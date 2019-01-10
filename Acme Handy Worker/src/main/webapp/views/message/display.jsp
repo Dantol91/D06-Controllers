@@ -1,5 +1,6 @@
 <%@ page language="java" contentType="text/html; charset=ISO-8859-1"
 	pageEncoding="ISO-8859-1"%>
+
 <%@taglib prefix="jstl" uri="http://java.sun.com/jsp/jstl/core"%>
 <%@taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
 <%@taglib prefix="tiles" uri="http://tiles.apache.org/tags-tiles"%>
@@ -9,36 +10,47 @@
 	uri="http://www.springframework.org/security/tags"%>
 <%@taglib prefix="display" uri="http://displaytag.sf.net"%>
 
-<ul style="list-style-type: disc">
+<fieldset>
+<spring:message code="message.sentDate"></spring:message>:
+<jstl:out value="${mes.sentDate}"></jstl:out>
+</fieldset>
 
-	<li><b><spring:message code="ms.priority"></spring:message>:</b> <jstl:out
-			value="${m.priority}" /></li>
+<fieldset>
+<spring:message code="message.subject"></spring:message>:
+<jstl:out value="${mes.subject}"></jstl:out>
+</fieldset>
+	
+<fieldset>
+<spring:message code="message.body"></spring:message>:
+<jstl:out value="${mes.body}"></jstl:out>
+</fieldset>
 
-	<li><b><spring:message code="ms.sender"></spring:message>:</b> <jstl:out
-			value="${m.sender.userAccount.username}" /></li>
+<fieldset>
+<spring:message code="message.priority"></spring:message>:
+<jstl:out value="${mes.priority}"></jstl:out>
+</fieldset>
 
-	<li><b><spring:message code="ms.recipient"></spring:message>:</b>
-		<jstl:out value="${m.recipient.userAccount.username}" /></li>
+<fieldset>
+<spring:message code="message.folder"></spring:message>:
+		<a href="folder/actor/display.do?folderId=${mes.folder.id}">
+			<jstl:out value="${mes.folder.name}" />
+		</a>
+</fieldset>
+	
+<fieldset>
+<spring:message code="message.sender"></spring:message>:
+<jstl:out value="${mes.sender}"></jstl:out>
+</fieldset>
 
-	<li><b><spring:message code="ms.subject"></spring:message>:</b> <jstl:out
-			value="${m.subject}" /></li>
-
-	<li><b><spring:message code="ms.body"></spring:message>:</b> <jstl:out
-			value="${m.body}" /></li>
-</ul>
-
-
-
-<input type="button" name="back"
-	value="<spring:message code="ms.back" />"
-	onclick="javascript: relativeRedir('box/display.do?folderId=${box.id}')" />
-
-<input type="button" name="move"
-	value="<spring:message code="ms.move" />"
-	onclick="javascript: relativeRedir('message/move.do?messageId=<jstl:out value="${m.getId()}"/>');" />
-
-
-<input type="button" name="delete"
-	value="<spring:message code="ms.delete" />"
-	onclick="javascript: relativeRedir('message/delete.do?messageId=<jstl:out value="${m.getId()}"/>');" />
-
+<fieldset>
+<spring:message code="message.receiver"></spring:message>:
+<jstl:out value="${mes.receiver}"></jstl:out>
+</fieldset>
+<br>
+<spring:message code="message.cancel" var="cancelHeader"></spring:message>
+			<input type="button" name="cancel" value="${cancelHeader}"
+				onclick="javascript:relativeRedir('message/actor/list.do')" />
+				
+		<spring:message code="message.delete" var="deleteHeader"></spring:message>
+		<input type="button" name="delete" value="${deleteHeader}"
+			onclick="javascript:relativeRedir('message/actor/list.do')" />
